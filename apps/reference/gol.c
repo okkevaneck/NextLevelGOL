@@ -7,6 +7,7 @@ Based on https://web.cs.dal.ca/~arc/teaching/CS4125/2014winter/Assignment2/Assig
 
 ************************/
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,7 +99,24 @@ static void world_init_random(world *world) {
 static void world_print(world *world) {
     int **cells = world->cells;
     int i, j;
+#ifdef VIDEO
+    int ci = 0;
+    uint8_t *canvas = malloc(world->width * world->height);
 
+    for (i = 1; i <= world->height; i++) {
+        for (j = 1; j <= world->width; j++) {
+            /* Fill the canvas */
+            canvas[ci++] = cells[i][j] * 255;
+        }
+    }
+
+    /* Write PGM image to stdout.
+     * For more info see: https://en.wikipedia.org/wiki/Netpbm */
+    printf("P5\n%d %d\n255\n", world->width, world->height);
+    fwrite(canvas, world->width * world->height, 1, stdout);
+
+    free(canvas);
+#else
     for (i = 1; i <= world->height; i++) {
         for (j = 1; j <= world->width; j++) {
             if (cells[i][j]) {
@@ -109,6 +127,7 @@ static void world_print(world *world) {
         }
         printf("\n");
     }
+#endif
 }
 
 static int world_count(world *world) {
@@ -270,7 +289,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (print_world > 0) {
-        printf("\ninitial world:\n\n");
+        fprintf(stderr, "\ninitial world:\n\n");
         world_print(cur_world);
     }
 
@@ -289,11 +308,11 @@ int main(int argc, char *argv[]) {
         next_world = tmp_world;
 
         if (print_cells > 0 && (n % print_cells) == (print_cells - 1)) {
-            printf("%d: %d live cells\n", n, world_count(cur_world));
+            fprintf(stderr, "%d: %d live cells\n", n, world_count(cur_world));
         }
 
         if (print_world > 0 && (n % print_world) == (print_world - 1)) {
-            printf("\nafter time step %d:\n\n", n);
+            fprintf(stderr, "\nafter time step %d:\n\n", n);
             world_print(cur_world);
         }
     }
@@ -302,7 +321,7 @@ int main(int argc, char *argv[]) {
     elapsed_time = end_time - start_time;
 
     /* Iterations are done: sum the number of live cells. */
-    printf("Number of live cells = %d\n", world_count(cur_world));
+    fprintf(stderr,"Number of live cells = %d\n", world_count(cur_world));
     fprintf(stderr, "Game of Life took %10.3f seconds\n", elapsed_time);
 
     return 0;
