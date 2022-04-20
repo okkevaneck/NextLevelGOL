@@ -5,7 +5,8 @@
  *   GIF87a specs by CompuServe Incorporated, 1987
  *     http://www.w3.org/Graphics/GIF/spec-gif87.txt
  *   What's In A GIF by Mike Flickinger, 2005
- *     http://giflib.sourceforge.net/whatsinagif
+ *     http://www.matthewflickinger.com/lab/whatsinagif/
+ *     http://giflib.sourceforge.net/whatsinagif (mirror)
  */
 
 #include <assert.h>
