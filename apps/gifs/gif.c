@@ -1,4 +1,4 @@
-/* Black & white GIF encoder.
+/* Black & white animated GIF encoder.
  *   (c) Kevin Nobel
  *
  * Resources:
@@ -46,11 +46,29 @@ void write_gif_header(uint16_t width, uint16_t height, FILE *file) {
     };
     fwrite(ct, 6, 1, file);
 
-    /* Graphics Control Extension: TODO (not implemented yet)
-     *   Check "NETSCAPE2.0" extension for looping animations */
+    /* Graphics Control Extension: NETSCAPE 2.0 (looping animation) */
+    cwrite(0x21, file);  // GIF Extension code
+    cwrite(0xFF, file);  // Application Extension Label
+    cwrite(0x0B, file);  // Application block length
+    fwrite("NETSCAPE2.0", 11, 1, file);
+    cwrite(0x03, file);  // Sub-block data length
+    cwrite(0x01, file);  // Sub-block ID
+    cwrite(0x00, file);  // Loop count (low  byte)
+    cwrite(0x00, file);  // Loop count (high byte)
+    cwrite(0x00, file);  // Sub-block terminator
 }
 
 void write_gif_frame(uint16_t width, uint16_t height, uint8_t *image, FILE *file) {
+    /* Graphics Control Extension: Animation speed */
+    cwrite(0x21, file);  // GIF Extension code
+    cwrite(0xF9, file);  // Application Extension Label
+    cwrite(0x04, file);  // Sub-block data length
+    cwrite(0x08, file);  // 000 010 0 0
+    cwrite(0x04, file);  // Animation speed (low  byte)
+    cwrite(0x00, file);  // Animation speed (high byte)
+    cwrite(0x00, file);  // Transparent color index
+    cwrite(0x00, file);  // Sub-block terminator
+
     /* Image Descriptor:
      * 1-byte separator, 4-byte position, 4-byte dimensions, 1-byte option field */
     const uint8_t ps[4] = {
