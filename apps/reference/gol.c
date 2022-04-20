@@ -12,6 +12,7 @@ Based on https://web.cs.dal.ca/~arc/teaching/CS4125/2014winter/Assignment2/Assig
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include "gif.h"
 
 typedef struct {
     int height, width;
@@ -106,14 +107,17 @@ static void world_print(world *world) {
     for (i = 1; i <= world->height; i++) {
         for (j = 1; j <= world->width; j++) {
             /* Fill the canvas */
-            canvas[ci++] = cells[i][j] * 255;
+            canvas[ci++] = cells[i][j];
         }
     }
 
-    /* Write PGM image to stdout.
-     * For more info see: https://en.wikipedia.org/wiki/Netpbm */
-    printf("P5\n%d %d\n255\n", world->width, world->height);
-    fwrite(canvas, world->width * world->height, 1, stdout);
+    /* Write canvas to GIF file */
+    write_gif_frame(world->width, world->height, canvas, stdout);
+
+//    /* Write PGM image to stdout.
+//     * For more info see: https://en.wikipedia.org/wiki/Netpbm */
+//    printf("P5\n%d %d\n255\n", world->width, world->height);
+//    fwrite(canvas, world->width * world->height, 1, stdout);
 
     free(canvas);
 #else
@@ -290,6 +294,7 @@ int main(int argc, char *argv[]) {
 
     if (print_world > 0) {
         fprintf(stderr, "\ninitial world:\n\n");
+        write_gif_header(cur_world->width, cur_world->height, stdout);
         world_print(cur_world);
     }
 
@@ -324,5 +329,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr,"Number of live cells = %d\n", world_count(cur_world));
     fprintf(stderr, "Game of Life took %10.3f seconds\n", elapsed_time);
 
+    write_gif_trailer(stdout);
     return 0;
 }
