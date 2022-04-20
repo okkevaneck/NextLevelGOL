@@ -72,28 +72,37 @@ void write_gif_frame(uint16_t width, uint16_t height, uint8_t *image, FILE *file
 
     /* Image Descriptor:
      * 1-byte separator, 4-byte position, 4-byte dimensions, 1-byte option field */
-    const uint8_t ps[4] = {
-            0x00, 0x00,
-            0x00, 0x00
-    };
     cwrite(0x2C, file);
-    fwrite(ps, 4, 1, file);
+    cwrite(0x00, file);  // 4-byte position
+    cwrite(0x00, file);
+    cwrite(0x00, file);
+    cwrite(0x00, file);
     lwrite(&width, file);
     lwrite(&height, file);
     cwrite(0x00, file);
 
     /* Local Color Table: Not needed, we only use the global color table! */
 
-    /* Image Data: You are supposed to use LZW compression here, but I don't
-     * want to bother with that (for now at least)...
-     * TODO: Add support for larger files.
-     * TODO: Compress 8 pixels into one byte. */
-    const uint64_t size = width * height;
-    assert(size < 255);
-
+    /* Image Data: Without LZW compression!
+     * TODO: Compress 4 pixels into one byte.
+     * TODO: Actually use LZW compression. */
     cwrite(0x07, file);  // 7-bit symbols (8-bit codes)
-    cwrite((uint8_t) size, file);  // How many bytes will follow.
-    fwrite(image, size, 1, file);
+    size_t remaining = width * height;
+    uint8_t size = 0;
+    uint8_t *ptr = image;
+    while(remaining > 0) {
+        remaining--;
+        size++;
+        if (size == 126 || remaining == 0) {
+            cwrite(size + 1, file);  // How many bytes will follow.
+            cwrite(0x80, file);      // Clear code (1000 0000)
+            fwrite(ptr, size, 1, file);
+            ptr = ptr + size;
+            size = 0;
+        }
+    }
+    cwrite(0x1, file);   // One byte will follow.
+    cwrite(0x81, file);  // End of Information code (1000 0001)
     cwrite(0x00, file);  // Block terminator
 }
 
