@@ -1,3 +1,9 @@
+# Intel Advisor results
+**/annotations.advidb2 
+**/config/ 
+**/e000/ 
+*/reference.advixeproj
+
 # Prerequisites
 *.d
 
