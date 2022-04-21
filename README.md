@@ -6,5 +6,7 @@ This repository contains a performance engineering overview for a Game of Life i
  - Use each bit of a char to represent 8 cells with 1 variable
    - Do this with inline functions
    - Do this with macro functions
+ - Use SIMD operations
+ - Optimize column data transfer.
  - Detect "dead zones", and only update edges instead of whole area.
  - Detect "stable structures" and only compute edges instead of computing all cells within area. Those can be loaded through pre-defined structures.
