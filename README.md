@@ -10,3 +10,5 @@ This repository contains a performance engineering overview for a Game of Life i
  - Optimize column data transfer.
  - Detect "dead zones", and only update edges instead of whole area.
  - Detect "stable structures" and only compute edges instead of computing all cells within area. Those can be loaded through pre-defined structures.
+ - Avoid excessive looping in gif encoder (see `while` loop in `write_gif_frame`).
+ - Pass the same data to gif encoder as used in GOL simulator (aka don't copy everything to a buffer). 
