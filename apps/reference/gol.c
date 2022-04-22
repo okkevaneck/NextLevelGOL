@@ -242,21 +242,21 @@ static int **alloc_2d_int_array(int nrows, int ncolumns) {
     return array;
 }
 
-static double time_secs(void) {
-    struct timeval tv;
-
-    if (gettimeofday(&tv, 0) != 0) {
-        fprintf(stderr, "could not do timing\n");
-        exit(1);
-    }
-
+static inline double time_secs(struct timeval tv) {
+    gettimeofday(&tv, 0);
     return tv.tv_sec + (tv.tv_usec / 1000000.0);
 }
 
 int main(int argc, char *argv[]) {
     int n, nsteps;
-    double start_time, end_time, elapsed_time;
     int bwidth, bheight;
+
+    struct timeval tv;
+    double time_start, time_end, total;
+    double wrap = 0.0;
+    double step = 0.0;
+    double swap = 0.0;
+    double gif  = 0.0;
 
     /* Get parameters. */
     if (argc != 6) {
@@ -298,20 +298,29 @@ int main(int argc, char *argv[]) {
         world_print(cur_world);
     }
 
-    start_time = time_secs();
-
     /* Time steps. */
     for (n = 0; n < nsteps; n++) {
         world *tmp_world;
 
+        time_start = time_secs(tv);
         world_border_wrap(cur_world);
+        time_end = time_secs(tv);
+        wrap += time_end - time_start;
+
+        time_start = time_secs(tv);
         world_timestep(cur_world, next_world);
+        time_end = time_secs(tv);
+        step += time_end - time_start;
 
         /* Swap old and new worlds. */
+        time_start = time_secs(tv);
         tmp_world = cur_world;
         cur_world = next_world;
         next_world = tmp_world;
+        time_end = time_secs(tv);
+        swap += time_end - time_start;
 
+        time_start = time_secs(tv);
         if (print_cells > 0 && (n % print_cells) == (print_cells - 1)) {
             fprintf(stderr, "%d: %d live cells\n", n, world_count(cur_world));
         }
@@ -320,14 +329,24 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "\nafter time step %d:\n\n", n);
             world_print(cur_world);
         }
+        time_end = time_secs(tv);
+        gif += time_end - time_start;
     }
 
-    end_time = time_secs();
-    elapsed_time = end_time - start_time;
-
     /* Iterations are done: sum the number of live cells. */
-    fprintf(stderr,"Number of live cells = %d\n", world_count(cur_world));
-    fprintf(stderr, "Game of Life took %10.3f seconds\n", elapsed_time);
+    fprintf(stderr,"Number of live cells = %d\n\n", world_count(cur_world));
+
+    /* Print timing data. */
+    total = wrap + step + swap + gif;
+    fprintf(stderr, "Total time spend in each part:\n");
+    fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
+    fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
+    fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
+    fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
+    fprintf(stderr, "  -----------------------------------\n");
+    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
+
+    fprintf(stderr, "Throughput: %.0f pixels/second\n", bwidth * bheight / total);
 
 #ifdef VIDEO
     write_gif_trailer(stdout);
