@@ -1,13 +1,7 @@
 # Ignore files without extensions
-*
-!*.*
-!*/
-
-# Intel Advisor results
-**/annotations.advidb2 
-**/config/ 
-**/e000/ 
-*/reference.advixeproj
+#*
+#!*.*
+#!*/
 
 # Prerequisites
 *.d
@@ -70,6 +64,12 @@ dkms.conf
 
 # Images
 *.gif
+
+# Intel Advisor results
+**/annotations.advidb2
+**/config/
+**/e000/
+*/reference.advixeproj
 
 # Advisor reports (HTML)
 *.html
