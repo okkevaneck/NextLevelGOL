@@ -72,9 +72,7 @@ static void world_init(world *world) {
         }
     }
 }
-#endif
-
-#ifndef FIXED_WORLD
+#else
 static void world_init(world *world) {
     int **cells = world->cells;
     int i, j;
@@ -116,9 +114,7 @@ static void world_print(world *world) {
 
     free(canvas);
 }
-#endif
-
-#ifndef VIDEO
+#else
 static void world_print(world *world) {
     int **cells = world->cells;
     int i, j;
@@ -293,8 +289,7 @@ int main(int argc, char *argv[]) {
     if (print_world > 0) {
 #ifndef VIDEO
         fprintf(stderr, "\ninitial world:\n\n");
-#endif
-#ifdef VIDEO
+#else
         write_gif_header(cur_world->width, cur_world->height, stdout);
 #endif
         world_print(cur_world);

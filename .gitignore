@@ -1,7 +1,8 @@
 # Ignore files without extensions
-#*
-#!*.*
-#!*/
+*
+!*.*
+!*/
+!**/Makefile
 
 # Prerequisites
 *.d
