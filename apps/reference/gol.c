@@ -291,7 +291,9 @@ int main(int argc, char *argv[]) {
     world_init(cur_world);
 
     if (print_world > 0) {
+#ifndef VIDEO
         fprintf(stderr, "\ninitial world:\n\n");
+#endif
 #ifdef VIDEO
         write_gif_header(cur_world->width, cur_world->height, stdout);
 #endif
@@ -326,7 +328,9 @@ int main(int argc, char *argv[]) {
         }
 
         if (print_world > 0 && (n % print_world) == (print_world - 1)) {
+#ifndef VIDEO
             fprintf(stderr, "\nafter time step %d:\n\n", n);
+#endif
             world_print(cur_world);
         }
         time_end = time_secs(tv);
