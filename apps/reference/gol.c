@@ -7,12 +7,13 @@ Based on https://web.cs.dal.ca/~arc/teaching/CS4125/2014winter/Assignment2/Assig
 
 ************************/
 
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+
 #ifdef VIDEO
+#include <inttypes.h>
 #include "gif.h"
 #endif
 
@@ -27,13 +28,7 @@ static world *cur_world, *next_world;
 static int print_cells = 0;
 static int print_world = 0;
 
-/* Use fixed world or random world. */
 #ifdef FIXED_WORLD
-static int random_world = 0;
-#else
-static int random_world = 1;
-#endif
-
 static char *start_world[] = {
     /* Gosper glider gun */
     /* example from https://bitstorm.org/gameoflife/ */
@@ -61,7 +56,7 @@ static char *start_world[] = {
     "..........................................",
 };
 
-static void world_init_fixed(world *world) {
+static void world_init(world *world) {
     int **cells = world->cells;
     int i, j;
 
@@ -77,8 +72,10 @@ static void world_init_fixed(world *world) {
         }
     }
 }
+#endif
 
-static void world_init_random(world *world) {
+#ifndef FIXED_WORLD
+static void world_init(world *world) {
     int **cells = world->cells;
     int i, j;
 
@@ -98,11 +95,12 @@ static void world_init_random(world *world) {
         }
     }
 }
+#endif
 
+#ifdef VIDEO
 static void world_print(world *world) {
     int **cells = world->cells;
     int i, j;
-#ifdef VIDEO
     int ci = 0;
     uint8_t *canvas = malloc(world->width * world->height);
 
@@ -117,7 +115,14 @@ static void world_print(world *world) {
     write_gif_frame(world->width, world->height, canvas, stdout);
 
     free(canvas);
-#else
+}
+#endif
+
+#ifndef VIDEO
+static void world_print(world *world) {
+    int **cells = world->cells;
+    int i, j;
+
     for (i = 1; i <= world->height; i++) {
         for (j = 1; j <= world->width; j++) {
             if (cells[i][j]) {
@@ -128,8 +133,8 @@ static void world_print(world *world) {
         }
         printf("\n");
     }
-#endif
 }
+#endif
 
 static int world_count(world *world) {
     int **cells = world->cells;
@@ -283,11 +288,7 @@ int main(int argc, char *argv[]) {
     next_world = &worlds[1];
 
     /* Initialize board. */
-    if (random_world) {
-        world_init_random(cur_world);
-    } else {
-        world_init_fixed(cur_world);
-    }
+    world_init(cur_world);
 
     if (print_world > 0) {
         fprintf(stderr, "\ninitial world:\n\n");
