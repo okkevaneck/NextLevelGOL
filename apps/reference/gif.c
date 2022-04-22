@@ -9,10 +9,8 @@
  *     http://giflib.sourceforge.net/whatsinagif (mirror)
  */
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
-
 #include "gif.h"
 
 /* Macro to write little endian. */
