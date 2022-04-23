@@ -22,11 +22,19 @@ run_test() {
     } < <((printf '\0%s\0' "$( (./gol-fixed $bwidth $bheight $nsteps 1 1 | tr -d '\0') 3>&1- 1>&2- 2>&3- | tr -d '\0')" 1>&2 ) 2>&1)
 
     # Loop over STDERR lines and perform checks.
-    for (( i=0; i<nsteps; i++)); do
+    for (( i=0; i<nsteps; i++ )); do
         frame=${out:i*(bwidth+1)*bheight:bwidth*bheight}
+        echo "Frame $i:"
+        echo "======="
+
+        echo "$frame" | diff -Z "../../tests/reference_output/frame$i" -
+
+#        ref=$(cat "../../tests/reference_output/frame$i")
 
         # Compare the current frame with the stored reference.
-
+#        if [[ $ref != "$frame" ]]; then
+#            echo -e "\tError: frame $i does not match"
+#        fi
     done
 
     # Check for differences in frames.
