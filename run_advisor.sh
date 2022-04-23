@@ -15,7 +15,7 @@ else
 fi
 
 # Go to right directory and clean folder.
-cd "$VDIR" || (echo "Error: cd into VDIR failed.." && exit 3)
+cd "$VDIR" || exit 3
 make clean
 rm -rf annotations.advidb2 config/ e000/ reference.advixeproj report.html
 
