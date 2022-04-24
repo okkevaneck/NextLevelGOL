@@ -38,23 +38,24 @@ run_unit_tests() {
 run_conf_tests() {
     echo -e "\tRunning configurations.."
     # Configurations to test.
-    bwidths=( 42 )
-    bheights=( 22 )
-    nsteps=( 10 )
-    printworlds=( 1 )
-    printcells=( 1 )
+    bwidths=( 42 100 )
+    bheights=( 22 100 )
+    nsteps=( 500 1200 )
+    printworlds=( 1 1 )
+    printcells=( 1 1 )
 
     # Test every configuration.
     for i in "${!bwidths[@]}"; do
-        # Store STDOUT for reference and version code.
-        ref_out=$("./apps/v0_reference/gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null)
-        ver_out=$("./$1gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null)
+        # Store STDOUT for reference and version code while running in parallel.
+        ref_out=$("./apps/v0_reference/gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null) &
+        ver_out=$("./$1gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null) &
+        wait
 
         # Compare output and log result.
         if ! diff <(echo "$ref_out") <(echo "$ver_out"); then
             echo -e "\t\tError: Config failed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
         else
-            echo -e "\t\tSuccess: Config passed"
+            echo -e "\t\tSuccess: Config passed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
         fi
     done
 }
