@@ -4,39 +4,36 @@
 run_unit_tests() {
     echo -e "\n\tRunning unit worlds.."
 
-    #    # Compile right version of code.
-    #    cd "$1" || exit 4
-    #    make clean
-    #    make gol-fixed
-    #
-    #    # Run code with FIXED_WORLD for 10 cycles. STDOUT and STDERR are captured
-    #    # separately, and NULL bytes are parsed properly to avoid breaking.
-    #    # From: https://stackoverflow.com/questions/11027679/capture-stdout-and-stderr-into-different-variables
-    #    bwidth=$(( 42 ))
-    #    bheight=$(( 22 ))
-    #    nsteps=$(( 10 ))
-    #
-    #    {
-    #        IFS=$'\n' read -r -d '' out;
-    #        IFS=$'\n' read -r -d '' err;
-    #    } < <((printf '\0%s\0' "$( (./gol-fixed $bwidth $bheight $nsteps 1 1 | tr -d '\0') 3>&1- 1>&2- 2>&3- | tr -d '\0')" 1>&2 ) 2>&1)
-    #
-    #    # Loop over STDERR lines and perform checks.
-    #    for (( i=0; i<nsteps; i++)); do
-    #        frame=${out:i*(bwidth+1)*bheight:bwidth*bheight}
-    #
-    #        # Compare the current frame with the stored reference.
-    #
-    #    done
+    # Fetch worlds from folder and test each individually.
+    worlds=$(find tests/test_worlds/* -type f)
 
-        # Check for differences in frames.
+    for w in $worlds; do
+        # Parse bwidth, bheight, and nsteps from filename.
+        world_name=$(basename "$w")
+        split_=(${world_name//_/ })
+        params=(${split_[0]//x/ })
 
-        # Report difference of sum of alive cells on error.
+        # Store STDOUT for reference and version code while running in parallel.
+        "./apps/v0_reference/gol-plain" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ref.out &
+        "./$1gol-plain" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ver.out &
+        wait
+
+        # Compare output and log result.
+        if ! diff ref.out ver.out; then
+            echo -e "\t\tError: Unit failed - $world_name"
+        else
+            echo -e "\t\tSuccess: Unit passed - $world_name"
+        fi
+
+        # Delete intermediate files.
+        rm ref.out ver.out
+    done
 }
 
 # Execute configuration tests.
 run_conf_tests() {
     echo -e "\tRunning configurations.."
+
     # Configurations to test.
     bwidths=( 42 100 )
     bheights=( 22 100 )
@@ -73,7 +70,7 @@ run_test() {
     make gol-plain > /dev/null
     cd ../..
 
-    # Compile version code that will be tested.
+    # Compile the to be tested code with plain for configurations.
     cd "$1" || exit 4
     make clean > /dev/null
     make gol-plain > /dev/null
@@ -81,6 +78,12 @@ run_test() {
 
     # Test different configurations.
     run_conf_tests "$@"
+
+    # Compile the to be tested code with load for unit worlds.
+    cd "$1" || exit 4
+    make clean > /dev/null
+    make gol-load > /dev/null
+    cd ../..
 
     # Test unit worlds.
     run_unit_tests "$@"
