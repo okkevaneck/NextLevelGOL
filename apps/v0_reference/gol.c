@@ -72,6 +72,49 @@ static void world_init(world *world) {
         }
     }
 }
+#elif LOAD_WORLD
+static void world_init(world *world, FILE* world_file) {
+    int **cells = world->cells;
+    int i, j, k;
+    char c = fgetc(world_file);
+
+    /* Load world from given file.
+     * Fill blanks with 0 and skip extra characters per row.
+     */
+    for (i = 1; i <= world->height; i++) {
+        for (j = 1; j <= world->width; j++) {
+            /* If newline is found, fill in remaining row with 0. */
+            if (j != world->width && (c == '\n' || c == EOF)) {
+                for (k = j; k <= world->width; k++) {
+                    cells[i][k] = 0;
+                }
+
+                break;
+            }
+
+            /* Otherwise parse character. EOF will be parsed as 0. */
+            cells[i][j] = (c == 'O');
+
+            /* Fetch next character. Keep EOF if found already. */
+            if (c != EOF) {
+                c = fgetc(world_file);
+
+                /* Skip newline char if end of row is reached as well. */
+                if (c == '\n' && j == world->width) {
+                    c = fgetc(world_file);
+                }
+
+                printf("C: %c\n", c);
+            }
+        }
+
+        /* Move to next line of input world and fetch new character. */
+        while (c != EOF && c != '\n') {
+            c = fgetc(world_file);
+        }
+        c = fgetc(world_file);
+    }
+}
 #else
 static void world_init(world *world) {
     int **cells = world->cells;
@@ -255,11 +298,19 @@ int main(int argc, char *argv[]) {
     double gif  = 0.0;
 
     /* Get parameters. */
+#ifdef LOAD_WORLD
+    if (argc != 7) {
+        fprintf(stderr, "Usage: %s width height steps print_world "
+                        "print_cells world_path\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+#else
     if (argc != 6) {
         fprintf(stderr, "Usage: %s width height steps print_world "
                         "print_cells\n", argv[0]);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
+#endif
 
     bwidth = atoi(argv[1]);
     bheight = atoi(argv[2]);
@@ -270,13 +321,13 @@ int main(int argc, char *argv[]) {
     /* Initialize worlds. When allocating arrays, add 2 for ghost cells in both
      * directions.
      */
-    worlds[0].height = bheight;
     worlds[0].width = bwidth;
+    worlds[0].height = bheight;
     worlds[0].cells = alloc_2d_int_array(bheight + 2,
                                          bwidth + 2);
 
-    worlds[1].height = bheight;
     worlds[1].width = bwidth;
+    worlds[1].height = bheight;
     worlds[1].cells = alloc_2d_int_array(bheight + 2,
                                          bwidth + 2);
 
@@ -284,7 +335,21 @@ int main(int argc, char *argv[]) {
     next_world = &worlds[1];
 
     /* Initialize board. */
+#ifdef LOAD_WORLD
+    char* world_filename = argv[6];
+    FILE* world_file = fopen(world_filename, "r");
+
+    /* Error if file cannot be opened. */
+    if (world_file == NULL) {
+        printf("Unable to load world from file: %s\n", world_filename);
+        exit(EXIT_FAILURE);
+    }
+
+    world_init(cur_world, world_file);
+    fclose(world_file);
+#else
     world_init(cur_world);
+#endif
 
     if (print_world > 0) {
 #ifndef VIDEO
