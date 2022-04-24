@@ -64,7 +64,7 @@ run_conf_tests() {
 run_test() {
     echo "Running tests for ${1:5:-1}"
 
-    # Compile reference code.
+    # Compile reference code with plain for configurations.
     cd "apps/v0_reference" || exit 2
     make clean > /dev/null
     make gol-plain > /dev/null
@@ -78,6 +78,12 @@ run_test() {
 
     # Test different configurations.
     run_conf_tests "$@"
+
+    # Compile reference code with load for unit worlds.
+    cd "apps/v0_reference" || exit 2
+    make clean > /dev/null
+    make gol-load > /dev/null
+    cd ../..
 
     # Compile the to be tested code with load for unit worlds.
     cd "$1" || exit 4
