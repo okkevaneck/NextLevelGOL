@@ -14,8 +14,8 @@ run_unit_tests() {
         params=(${split_[0]//x/ })
 
         # Store STDOUT for reference and version code while running in parallel.
-        "./apps/v0_reference/gol-plain" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ref.out &
-        "./$1gol-plain" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ver.out &
+        "./apps/v0_reference/gol-load" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ref.out &
+        "./$1gol-load" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ver.out &
         wait
 
         # Compare output and log result.
