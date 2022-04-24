@@ -37,19 +37,6 @@ run_unit_tests() {
 # Execute configuration tests.
 run_conf_tests() {
     echo -e "\tRunning configurations.."
-
-    # Compile reference code for comparison.
-    cd "apps/v0_reference" || exit 2
-    make clean > /dev/null
-    make gol-plain > /dev/null
-    cd ../..
-
-    # Compile right version of code.
-    cd "$1" || exit 4
-    make clean > /dev/null
-    make gol-plain > /dev/null
-    cd ../..
-
     # Configurations to test.
     bwidths=( 42 )
     bheights=( 22 )
@@ -75,6 +62,18 @@ run_conf_tests() {
 # Executes the tests for a single version, given as first argument.
 run_test() {
     echo "Running tests for ${1:5:-1}"
+
+    # Compile reference code.
+    cd "apps/v0_reference" || exit 2
+    make clean > /dev/null
+    make gol-plain > /dev/null
+    cd ../..
+
+    # Compile version code that will be tested.
+    cd "$1" || exit 4
+    make clean > /dev/null
+    make gol-plain > /dev/null
+    cd ../..
 
     # Test different configurations.
     run_conf_tests "$@"
