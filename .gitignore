@@ -3,7 +3,8 @@
 !*.*
 !*/
 !**/Makefile
-!tests/reference_worlds/*
+!reference_worlds/*
+!tests/test_worlds/*
 
 # Prerequisites
 *.d

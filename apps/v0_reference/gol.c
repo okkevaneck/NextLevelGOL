@@ -103,8 +103,6 @@ static void world_init(world *world, FILE* world_file) {
                 if (c == '\n' && j == world->width) {
                     c = fgetc(world_file);
                 }
-
-                printf("C: %c\n", c);
             }
         }
 
