@@ -47,16 +47,19 @@ run_conf_tests() {
     # Test every configuration.
     for i in "${!bwidths[@]}"; do
         # Store STDOUT for reference and version code while running in parallel.
-        ref_out=$("./apps/v0_reference/gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null) &
-        ver_out=$("./$1gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null) &
+        "./apps/v0_reference/gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null > ref.out &
+        "./$1gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null > ver.out &
         wait
 
         # Compare output and log result.
-        if ! diff <(echo "$ref_out") <(echo "$ver_out"); then
+        if ! diff ref.out ver.out; then
             echo -e "\t\tError: Config failed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
         else
             echo -e "\t\tSuccess: Config passed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
         fi
+
+        # Delete intermediate files.
+        rm ref.out ver.out
     done
 }
 
