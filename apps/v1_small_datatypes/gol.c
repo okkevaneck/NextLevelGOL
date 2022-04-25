@@ -28,8 +28,8 @@ typedef struct {
 static world worlds[2];
 static world *cur_world, *next_world;
 
-static uint8_t print_cells = 0;
-static uint8_t print_world = 0;
+static int print_cells = 0;
+static int print_world = 0;
 
 #ifdef FIXED_WORLD
 static char *start_world[] = {
@@ -141,22 +141,8 @@ static void world_init(world *world) {
 
 #ifdef VIDEO
 static void world_print(world *world) {
-    uint8_t **cells = world->cells;
-    int i, j;
-    int ci = 0;
-    uint8_t *canvas = malloc(world->width * world->height);
-
-    for (i = 1; i <= world->height; i++) {
-        for (j = 1; j <= world->width; j++) {
-            /* Fill the canvas */
-            canvas[ci++] = cells[i][j];
-        }
-    }
-
     /* Write canvas to GIF file */
-    write_gif_frame(world->width, world->height, canvas, stdout);
-
-    free(canvas);
+    write_gif_frame(world->width, world->height, world->cells[0], stdout);
 }
 #else
 static void world_print(world *world) {
