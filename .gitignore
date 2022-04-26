@@ -73,6 +73,3 @@ dkms.conf
 **/config/
 **/e000/
 */reference.advixeproj
-
-# Advisor reports (HTML)
-*.html
