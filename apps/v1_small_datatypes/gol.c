@@ -197,8 +197,8 @@ static void world_border_wrap(world *world) {
 
 static int world_cell_newstate(world *world, int row, int col) {
     uint8_t **cells = world->cells;
-    int row_m, row_p, col_m, col_p, nsum;
-    uint8_t newval;
+    int row_m, row_p, col_m, col_p;
+    uint8_t newval, nsum;
 
     /* Sum surrounding cells. */
     row_m = row - 1;
