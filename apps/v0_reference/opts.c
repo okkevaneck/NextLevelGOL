@@ -71,7 +71,6 @@ void parse_opts(int argc, char *argv[], options *opts) {
             opts->use_output = 1;
             opts->output = argv[++i];
         } else {
-            printf("wrong\n");
             print_usage(argv[0]);
             exit(1);
         }
