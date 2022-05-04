@@ -1,16 +1,19 @@
-all: gol-plain gol-video
+CC      = gcc
+FLAGS   = -Wall -O3 -g -std=gnu99
 
-gol-plain: gol.c
-	gcc -Wall -O3 -o gol-plain gol.c
+TARGET  = gol
+SRC     = $(wildcard *.c)
+OBJ     = $(patsubst %.c,%.o,$(SRC))
 
-gol-fixed: gol.c
-	gcc -Wall -O3 -o gol-fixed gol.c -lm -D FIXED_WORLD
+.PHONY: all
+all: $(TARGET)
 
-gol-load: gol.c
-	gcc -Wall -O3 -o gol-load gol.c -lm -D LOAD_WORLD
+$(TARGET): $(OBJ)
+	$(CC) $(FLAGS) $(OBJ) -o $@
 
-gol-video: gol.c
-	gcc -Wall -O3 -o gol-video gol.c gif.c -lm -D VIDEO
+%.o: %.c
+	$(CC) $(FLAGS) -c $< -o $@
 
+.PHONY: clean
 clean:
-	rm -f *.o gol-plain gol-fixed gol-load gol-video *~ *core
+	rm -f $(TARGET) $(OBJ)

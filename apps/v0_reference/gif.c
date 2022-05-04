@@ -11,6 +11,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+
 #include "gif.h"
 
 /* Macro to write little endian. */
