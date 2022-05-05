@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
         world_load(cur_world, input_fp);
         fclose(input_fp);
     } else {
-        world_init_random(cur_world, 1);
+        world_init_random(cur_world, opts.seed);
     }
 
     /* Print the initial world state */

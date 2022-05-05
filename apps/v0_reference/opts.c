@@ -1,13 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "opts.h"
 
 void init_opts(options *opts) {
     opts->verbose = 0;
+    opts->seed = time(NULL);
     opts->use_input = 0;
+    opts->input = NULL;
     opts->use_output = 0;
+    opts->output = NULL;
 }
 
 void print_opts(options *opts) {
@@ -16,10 +20,12 @@ void print_opts(options *opts) {
             "Height    : %4d\n"
             "Steps     : %4d\n"
             "Verbose   : %4d\n"
+            "Seed      : %4d\n"
             "Use Input : %4d (%s)\n"
             "Use Output: %4d (%s)\n",
             opts->width, opts->height, opts->steps,
             opts->verbose,
+            opts->seed,
             opts->use_input, opts->input,
             opts->use_output, opts->output
     );
@@ -36,6 +42,7 @@ void print_usage(char *name) {
             "options:\n"
             "\t-h, --help\tShow this help message and exit\n"
             "\t-v, --verbose\tPrint world state to stdout\n"
+            "\t-s, --seed\tSeed to use for random world initialization\n"
             "\t-i, --input\tInput file to use as initial state\n"
             "\t-o, --output\tOutput file to use (will generate gif animation)\n",
             name
@@ -64,6 +71,8 @@ void parse_opts(int argc, char *argv[], options *opts) {
             exit(0);
         } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
             opts->verbose = 1;
+        } else if (i+1 < argc && (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seed"))) {
+            opts->seed = atoi(argv[++i]);
         } else if (i+1 < argc && (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--input"))) {
             opts->use_input = 1;
             opts->input = argv[++i];
