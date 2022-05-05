@@ -1,5 +1,11 @@
-# next_level_GOL
-This repository contains a performance engineering overview for a Game of Life implementation, where performance is pushed to the maximum.
+# Next Level Game of Life
+This repository contains a performance engineering overview for a Conway's Game of Life implementation, where performance is pushed to the maximum.
+
+<div align="center">
+<img src="34p14.gif">
+
+*[34p14 shuttle](https://conwaylife.com/wiki/34P14_shuttle)*
+</div>
 
 # Optimisations
  - Change variable types to be as small as possible -> char to represent 1 cell instead of an int
