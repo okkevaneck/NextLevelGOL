@@ -21,6 +21,8 @@ run_unit_tests() {
         # Compare output and log result.
         if ! diff ref.out ver.out; then
             echo -e "\t\tError: Unit failed - $world_name"
+            rm ref.out ver.out
+            exit 1
         else
             echo -e "\t\tSuccess: Unit passed - $world_name"
         fi
