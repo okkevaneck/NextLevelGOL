@@ -14,45 +14,17 @@ run_unit_tests() {
         params=(${split_[0]//x/ })
 
         # Store STDOUT for reference and version code while running in parallel.
-        "./apps/v0_reference/gol-load" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ref.out &
-        "./$1gol-load" "${params[0]}" "${params[1]}" "${params[2]}" 1 1 "$w" 2> /dev/null > ver.out &
+        "./apps/v0_reference/gol" "${params[0]}" "${params[1]}" "${params[2]}" -i "$w" -v 2> /dev/null > ref.out &
+        "./$1gol" "${params[0]}" "${params[1]}" "${params[2]}" -i "$w" -v 2> /dev/null > ver.out &
         wait
 
         # Compare output and log result.
         if ! diff ref.out ver.out; then
             echo -e "\t\tError: Unit failed - $world_name"
+            rm ref.out ver.out
+            exit 1
         else
             echo -e "\t\tSuccess: Unit passed - $world_name"
-        fi
-
-        # Delete intermediate files.
-        rm ref.out ver.out
-    done
-}
-
-# Execute configuration tests.
-run_conf_tests() {
-    echo -e "\tRunning configurations.."
-
-    # Configurations to test.
-    bwidths=( 42 100 )
-    bheights=( 22 100 )
-    nsteps=( 500 1200 )
-    printworlds=( 1 1 )
-    printcells=( 1 1 )
-
-    # Test every configuration.
-    for i in "${!bwidths[@]}"; do
-        # Store STDOUT for reference and version code while running in parallel.
-        "./apps/v0_reference/gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null > ref.out &
-        "./$1gol-plain" "${bwidths[i]}" "${bheights[i]}" "${nsteps[i]}" "${printworlds[i]}" "${printcells[i]}" 2> /dev/null > ver.out &
-        wait
-
-        # Compare output and log result.
-        if ! diff ref.out ver.out; then
-            echo -e "\t\tError: Config failed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
-        else
-            echo -e "\t\tSuccess: Config passed - (${bwidths[i]} ${bheights[i]} ${nsteps[i]} ${printworlds[i]} ${printcells[i]})"
         fi
 
         # Delete intermediate files.
@@ -64,31 +36,16 @@ run_conf_tests() {
 run_test() {
     echo "Running tests for ${1:5:-1}"
 
-    # Compile reference code with plain for configurations.
-    cd "apps/v0_reference" || exit 2
-    make clean > /dev/null
-    make gol-plain > /dev/null
-    cd ../..
-
-    # Compile the to be tested code with plain for configurations.
-    cd "$1" || exit 4
-    make clean > /dev/null
-    make gol-plain > /dev/null
-    cd ../..
-
-    # Test different configurations.
-    run_conf_tests "$@"
-
     # Compile reference code with load for unit worlds.
     cd "apps/v0_reference" || exit 2
     make clean > /dev/null
-    make gol-load > /dev/null
+    make gol > /dev/null 2> /dev/null
     cd ../..
 
     # Compile the to be tested code with load for unit worlds.
     cd "$1" || exit 4
     make clean > /dev/null
-    make gol-load > /dev/null
+    make gol > /dev/null 2> /dev/null
     cd ../..
 
     # Test unit worlds.

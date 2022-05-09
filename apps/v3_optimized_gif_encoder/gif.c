@@ -14,6 +14,9 @@
 
 #include "gif.h"
 
+#define BYTES_PER_BLOCK 126
+#define MIN(a, b) a < b ? a : b
+
 /* Macro to write little endian. */
 void lwrite(uint16_t *p, FILE *f) {
     fwrite((uint8_t[]) {(*p) & 0xFF, (*p) >> 8}, 2, 1, f);
@@ -90,15 +93,13 @@ void write_gif_frame(uint16_t width, uint16_t height, uint8_t *image, FILE *file
     uint8_t size = 0;
     uint8_t *ptr = image;
     while(remaining > 0) {
-        remaining--;
-        size++;
-        if (size == 126 || remaining == 0) {
-            cwrite(size + 1, file);  // How many bytes will follow.
-            cwrite(0x80, file);      // Clear code (1000 0000)
-            fwrite(ptr, size, 1, file);
-            ptr = ptr + size;
-            size = 0;
-        }
+        size = MIN(remaining, BYTES_PER_BLOCK);
+        remaining -= size;
+
+        cwrite(size + 1, file);  // How many bytes will follow.
+        cwrite(0x80, file);      // Clear code (1000 0000)
+        fwrite(ptr, size, 1, file);
+        ptr = ptr + size;
     }
     cwrite(0x1, file);   // One byte will follow.
     cwrite(0x81, file);  // End of Information code (1000 0001)
