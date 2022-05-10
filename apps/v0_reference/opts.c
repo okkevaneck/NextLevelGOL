@@ -33,7 +33,7 @@ void print_opts(options *opts) {
 
 void print_usage(char *name) {
     printf(
-            "usage: %s width height steps [-v] [-i file] [-o file]\n\n"
+            "usage: %s width height steps [-v] [-s seed] [-i file] [-o file]\n\n"
             "Conway's Game of Life simulator by Okke van Eck & Kevin Nobel\n\n"
             "positional arguments:\n"
             "\twidth\t\tCanvas width (of input file, if used)\n"
