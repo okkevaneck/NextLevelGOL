@@ -11,6 +11,9 @@
 int main(int argc, char *argv[]) {
     FILE *input_fp, *output_fp;
 
+    world worlds[2];
+    world *cur_world, *next_world;
+
     struct timeval tv;
     double time_start, time_end, total;
     double wrap = 0.0;

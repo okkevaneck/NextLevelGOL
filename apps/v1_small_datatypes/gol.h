@@ -10,9 +10,6 @@ typedef struct {
     pixel_t **cells;
 } world;
 
-world worlds[2];
-world *cur_world, *next_world;
-
 void world_border_wrap(world *world);
 void world_timestep(world *old, world *new);
 
