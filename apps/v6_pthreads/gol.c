@@ -1,5 +1,4 @@
 #include "gol.h"
-#include <pthread.h>
 
 static pixel_t get_newval(world *world, int lft, int h_mid, int rgt, int top, int v_mid, int bot) {
     pixel_t **cells = world->cells;
