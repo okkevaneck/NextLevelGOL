@@ -37,7 +37,7 @@ void print_usage(char *name) {
             "Conway's Game of Life simulator by Okke van Eck & Kevin Nobel\n\n"
             "positional arguments:\n"
             "\twidth\t\tCanvas width (of input file, if used)\n"
-            "\tHeight\t\tCanvas height (of input file, if used)\n"
+            "\theight\t\tCanvas height (of input file, if used)\n"
             "\tsteps\t\tNumber of steps that should be simulated\n\n"
             "options:\n"
             "\t-h, --help\tShow this help message and exit\n"

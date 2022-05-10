@@ -9,7 +9,7 @@
 #include "util.h"
 
 int main(int argc, char *argv[]) {
-    FILE *input_fp, *output_fp;
+    FILE *input_fp = NULL, *output_fp = NULL;
 
     world worlds[2];
     world *cur_world, *next_world;

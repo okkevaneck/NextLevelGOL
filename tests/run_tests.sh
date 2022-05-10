@@ -2,7 +2,7 @@
 
 # Execute unit world tests.
 run_unit_tests() {
-    echo -e "\n\tRunning unit worlds.."
+    echo -e "\tRunning unit worlds.."
 
     # Fetch worlds from folder and test each individually.
     worlds=$(find tests/test_worlds/* -type f)
@@ -34,7 +34,7 @@ run_unit_tests() {
 
 # Executes the tests for a single version, given as first argument.
 run_test() {
-    echo "Running tests for ${1:5:-1}"
+    echo -e "\nRunning tests for ${1:5:-1}"
 
     # Compile reference code with load for unit worlds.
     cd "apps/v0_reference" || exit 2
