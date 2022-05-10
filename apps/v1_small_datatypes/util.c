@@ -12,8 +12,7 @@ pixel_t **alloc_2d_int_array(int nrows, int ncolumns) {
     int i;
 
     /* Version that keeps the 2d data contiguous, can help caching and slicing
-     * across dimensions.
-     */
+     * across dimensions. */
     array = malloc(nrows * sizeof(pixel_t *));
     if (array == NULL) {
         fprintf(stderr, "out of memory\n");
@@ -39,8 +38,7 @@ void world_load(world *world, FILE* world_fp) {
     char c = fgetc(world_fp);
 
     /* Load world from given file.
-     * Fill blanks with 0 and skip extra characters per row.
-     */
+     * Fill blanks with 0 and skip extra characters per row. */
     for (i = 1; i <= world->height; i++) {
         for (j = 1; j <= world->width; j++) {
             /* If newline is found, fill in remaining row with 0. */
@@ -79,8 +77,7 @@ void world_init_random(world *world, unsigned int seed) {
     int i, j;
 
     /* Using srand() instead of rand() as it is reproducible on the designated
-     * platform.
-     */
+     * platform. */
     srand(seed);
 
     for (i = 1; i <= world->height; i++) {

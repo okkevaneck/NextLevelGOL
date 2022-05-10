@@ -12,8 +12,7 @@ int **alloc_2d_int_array(int nrows, int ncolumns) {
     int i;
 
     /* Version that keeps the 2d data contiguous, can help caching and slicing
-     * across dimensions.
-     */
+     * across dimensions. */
     array = malloc(nrows * sizeof(int *));
     if (array == NULL) {
         fprintf(stderr, "out of memory\n");
@@ -79,8 +78,7 @@ void world_init_random(world *world, unsigned int seed) {
     int i, j;
 
     /* Using srand() instead of rand() as it is reproducible on the designated
-     * platform.
-     */
+     * platform. */
     srand(seed);
 
     for (i = 1; i <= world->height; i++) {

@@ -39,24 +39,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    /* Initialize worlds. When allocating arrays, add 2 for ghost cells in both
-     * directions. */
-//    worlds[0].width = opts.width;
-//    worlds[1].width = opts.width;
-//    worlds[0].height = opts.height;
-//    worlds[1].height = opts.height;
-//    worlds[0].cells = malloc(opts.width * opts.height * sizeof(pixel_t));
-//    worlds[1].cells = malloc(opts.width * opts.height * sizeof(pixel_t));
-
+    /* Initialize worlds. */
     worlds[0].width = opts.width;
     worlds[0].height = opts.height;
-    worlds[0].cells = alloc_2d_int_array(opts.height,
-                                         opts.width);
+    worlds[0].cells = alloc_2d_int_array(opts.height, opts.width);
 
     worlds[1].width = opts.width;
     worlds[1].height = opts.height;
-    worlds[1].cells = alloc_2d_int_array(opts.height,
-                                         opts.width);
+    worlds[1].cells = alloc_2d_int_array(opts.height, opts.width);
 
     cur_world = &worlds[0];
     next_world = &worlds[1];
