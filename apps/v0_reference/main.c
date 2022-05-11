@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
         write_gif_header(cur_world->width, cur_world->height, output_fp);
     }
 
-    /* BRANCH for timing code. */
+    /* Branch for timing code. */
     if (opts.time_code != 0) {
         struct timeval tv;
         double time_start, time_end, total;
