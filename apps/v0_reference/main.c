@@ -14,13 +14,6 @@ int main(int argc, char *argv[]) {
     world worlds[2];
     world *cur_world, *next_world;
 
-    struct timeval tv;
-    double time_start, time_end, total;
-    double wrap = 0.0;
-    double step = 0.0;
-    double swap = 0.0;
-    double gif  = 0.0;
-
     options opts;
     parse_opts(argc, argv, &opts);
 
@@ -76,54 +69,86 @@ int main(int argc, char *argv[]) {
         write_gif_header(cur_world->width, cur_world->height, output_fp);
     }
 
-    /* Time steps... */
-    for (int n = 0; n < opts.steps; n++) {
-        world *tmp_world;
+    /* BRANCH for timing code. */
+    if (opts.time_code != 0) {
+        struct timeval tv;
+        double time_start, time_end, total;
+        double wrap = 0.0;
+        double step = 0.0;
+        double swap = 0.0;
+        double gif  = 0.0;
 
-        time_start = time_secs(tv);
-        world_border_wrap(cur_world);
-        time_end = time_secs(tv);
-        wrap += time_end - time_start;
+        /* Time steps... */
+        for (int n = 0; n < opts.steps; n++) {
+            world *tmp_world;
 
-        time_start = time_secs(tv);
-        world_timestep(cur_world, next_world);
-        time_end = time_secs(tv);
-        step += time_end - time_start;
+            time_start = time_secs(tv);
+            world_border_wrap(cur_world);
+            time_end = time_secs(tv);
+            wrap += time_end - time_start;
 
-        /* Swap old and new worlds. */
-        time_start = time_secs(tv);
-        tmp_world = cur_world;
-        cur_world = next_world;
-        next_world = tmp_world;
-        time_end = time_secs(tv);
-        swap += time_end - time_start;
+            time_start = time_secs(tv);
+            world_timestep(cur_world, next_world);
+            time_end = time_secs(tv);
+            step += time_end - time_start;
 
-        time_start = time_secs(tv);
+            /* Swap old and new worlds. */
+            time_start = time_secs(tv);
+            tmp_world = cur_world;
+            cur_world = next_world;
+            next_world = tmp_world;
+            time_end = time_secs(tv);
+            swap += time_end - time_start;
 
-        if (opts.verbose != 0) {
-            printf("World contains %d live cells after time step %d:\n\n", world_count(cur_world), n);
-            world_print(cur_world);
+            time_start = time_secs(tv);
+
+            if (opts.verbose != 0) {
+                printf("World contains %d live cells after time step %d:\n\n", world_count(cur_world), n);
+                world_print(cur_world);
+            }
+
+            if (opts.use_output != 0) {
+                world_frame(cur_world, output_fp);
+            }
+
+            time_end = time_secs(tv);
+            gif += time_end - time_start;
         }
 
-        if (opts.use_output != 0) {
-            world_frame(cur_world, output_fp);
-        }
+        /* Print timing data */
+        total = wrap + step + swap + gif;
+        fprintf(stderr, "Total time spend in each part:\n");
+        fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
+        fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
+        fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
+        fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
+        fprintf(stderr, "  -----------------------------------\n");
+        fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
 
-        time_end = time_secs(tv);
-        gif += time_end - time_start;
+        fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+    } else {
+        /* Time steps... */
+        for (int n = 0; n < opts.steps; n++) {
+            world *tmp_world;
+
+            world_border_wrap(cur_world);
+            world_timestep(cur_world, next_world);
+
+            /* Swap old and new worlds. */
+            tmp_world = cur_world;
+            cur_world = next_world;
+            next_world = tmp_world;
+
+            if (opts.verbose != 0) {
+                printf("World contains %d live cells after time step %d:\n\n", world_count(cur_world), n);
+                world_print(cur_world);
+            }
+
+            if (opts.use_output != 0) {
+                world_frame(cur_world, output_fp);
+            }
+        }
     }
-
-    /* Print timing data */
-    total = wrap + step + swap + gif;
-    fprintf(stderr, "Total time spend in each part:\n");
-    fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
-    fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
-    fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
-    fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
-    fprintf(stderr, "  -----------------------------------\n");
-    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
-
-    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
 
     /* Close the gif file */
     if (opts.use_output != 0) {
