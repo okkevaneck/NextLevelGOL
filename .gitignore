@@ -6,6 +6,9 @@
 !reference_worlds/*
 !tests/test_worlds/*
 
+# Ignore Python environments.
+**/venv/
+
 # Prerequisites
 *.d
 
