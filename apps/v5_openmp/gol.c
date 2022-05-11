@@ -58,9 +58,9 @@ void world_timestep(world *old, world *new) {
     int height = old->height;
 
     /* Update board. */
-    i = width+1;
-#pragma omp parallel for
+    #pragma omp parallel for private(i, row, col, nsum) shared(cells, newcells, width, height)
     for (row = 1; row < height-1; row++) {
+        i = width * row + 1;
         for (col = 1; col < width-1; col++) {
             /* Calculate sum of local (3x3) neighborhood, excluding the middle cell. */
             nsum = cells[i-width-1] + cells[i-width] + cells[i-width+1]
@@ -85,7 +85,5 @@ void world_timestep(world *old, world *new) {
             /* Continue to the cell on the right. */
             i++;
         }
-        /* Continue to the leftmost cell on the next row, skipping the two border cells. */
-        i+=2;
     }
 }
