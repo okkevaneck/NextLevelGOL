@@ -64,7 +64,10 @@ def gen_barplot():
     plt.xlabel("Versions", labelpad=0)
     plt.ylabel("Relative time spend")
     plt.xticks(rotation=45)
-    plt.gca().tick_params(axis="both", which="major", pad=0)
+    ax = plt.gca()
+    ax.tick_params(axis="both", which="major", pad=0)
+    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
 
     # Save and show plot.
     plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}")
