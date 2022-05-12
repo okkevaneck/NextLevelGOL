@@ -2,7 +2,7 @@
 
 # Check if arguments are passed.
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <version_number> <make_type>"
+    echo "Usage: $0 <version_number>"
     exit 1
 fi
 
@@ -19,20 +19,9 @@ cd "$VDIR" || exit 3
 make clean
 rm -rf annotations.advidb2 config/ e000/ reference.advixeproj report.html
 
-# Compile with right make type.
-case "$2" in
-    # Compile with video output.
-    "video")
-        make gol-video
-        GOLNAME=gol-video
-        ;;
-    # Compile without video output by default.
-    *)
-        make gol-plain
-        GOLNAME=gol-plain
-        ;;
-esac
+# Compile code.
+make
 
 # Collect data and create report with Intel Advisor.
-prun -np 1 advisor --collect=roofline --project-dir=. -- ./$GOLNAME 1920 1080 500 0 0
+prun -np 1 advisor --collect=roofline --project-dir=. -- ./gol 1000 1000 1000 -o /dev/null
 advisor --report=roofline --data-type=int --project-dir=. --report-output=./report.html
