@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Abort if script is not run from a version.
+# TODO
+
 # Collect data from version in current directory.
 prun -np 1 advisor --collect=roofline --project-dir=. -- ./gol 1000 1000 1000 -o /dev/null
 
