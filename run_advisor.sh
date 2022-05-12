@@ -17,7 +17,7 @@ fi
 # Go to right directory and clean folder.
 cd "$VDIR" || exit 3
 make clean
-rm -rf annotations.advidb2 config/ e000/ reference.advixeproj report.html
+rm -rf annotations.advidb2 config/ e000/ *.advixeproj report.html
 
 # Compile code.
 make
@@ -25,3 +25,6 @@ make
 # Collect data and create report with Intel Advisor.
 prun -np 1 advisor --collect=roofline --project-dir=. -- ./gol 1000 1000 1000 -o /dev/null
 advisor --report=roofline --data-type=int --project-dir=. --report-output=./report.html
+
+# Clean unwanted results.
+rm -rf annotations.advidb2 config/ e000/ *.advixeproj
