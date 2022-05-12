@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 
         /* Print timing data */
         total = wrap + step + swap + gif;
-        fprintf(stderr, "Total time spend in each part:\n");
+        fprintf(stderr, "Total time spent in each part:\n");
         fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
         fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
         fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
