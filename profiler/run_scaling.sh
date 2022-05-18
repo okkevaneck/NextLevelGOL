@@ -25,6 +25,9 @@ run_scaling() {
 
         echo -e "\tDone."
     done
+
+    # Unset the variable for future usage.
+    unset OMP_NUM_THREADS
 }
 
 # Main entry point of the script.

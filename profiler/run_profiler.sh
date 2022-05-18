@@ -37,6 +37,9 @@ main() {
     results="profiler/results/profiler_$1_$(date +%s)"
     mkdir -p "$results"
 
+    # Unset the number of OpenMP threads as we test purely the code.
+    unset OMP_NUM_THREADS
+
     # Run specific version, if specified.
     if [ ! "$1" = "all" ]; then
         # Check if folder with version number does exist.
