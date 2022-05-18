@@ -11,7 +11,6 @@ run_profiler() {
     cd ../..
 
     # Run the code and store output in results folder.
-    # Add a prefix for running ./gol if executed on DAS.
     if [ "$3" = "das" ]; then
         prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
     else

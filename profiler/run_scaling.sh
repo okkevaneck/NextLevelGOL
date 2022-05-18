@@ -16,7 +16,13 @@ run_scaling() {
 
         # Run the code and store output in results folder.
         echo -en "\tThreads: $nthreads.."
-        "$3./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
+
+        if [ "$3" = "das" ]; then
+            prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
+        else
+            "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
+        fi
+
         echo -e "\tDone."
     done
 }
@@ -38,13 +44,6 @@ main() {
     results="profiler/results/scaling_$1"
     mkdir -p "$results"
 
-    # Add a prefix for running ./gol if executed on DAS.
-    if [ "$2" = "das" ]; then
-        cmdPrefix="prun -np 1 "
-    else
-        cmdPrefix=""
-    fi
-
     # Check if folder with version number does exist.
     if ! compgen -G "apps/$1_*" > /dev/null; then
         echo "Version '$1' does not exist"
@@ -52,7 +51,7 @@ main() {
     fi
 
     vdir=$(find . -type d -name "$1*")
-    run_scaling "${vdir:2}/" "$results" "$cmdPrefix"
+    run_scaling "${vdir:2}/" "$results" "$2"
 }
 
 main "$@"
