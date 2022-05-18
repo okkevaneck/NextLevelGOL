@@ -11,7 +11,13 @@ run_profiler() {
     cd ../..
 
     # Run the code and store output in results folder.
-    "$3./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    # Add a prefix for running ./gol if executed on DAS.
+    if [ "$3" = "das" ]; then
+        prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    else
+        "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    fi
+
     echo -e "\tDone."
 }
 
@@ -32,13 +38,6 @@ main() {
     results="profiler/results/$(date +%s)"
     mkdir -p "$results"
 
-    # Add a prefix for running ./gol if executed on DAS.
-    if [ "$2" = "das" ]; then
-        cmdPrefix="prun -np 1 "
-    else
-        cmdPrefix=""
-    fi
-
     # Run specific version, if specified.
     if [ ! "$1" = "all" ]; then
         # Check if folder with version number does exist.
@@ -48,11 +47,11 @@ main() {
         fi
 
         vdir=$(find . -type d -name "$1*")
-        run_profiler "${vdir:2}/" "$results" "$cmdPrefix"
+        run_profiler "${vdir:2}/" "$results" "$2"
     else
         # Run tests for all versions.
         for d in apps/*/; do
-            run_profiler "$d" "$results" "$cmdPrefix"
+            run_profiler "$d" "$results" "$2"
         done
     fi
 }
