@@ -12,7 +12,7 @@ run_profiler() {
 
     # Run the code and store output in results folder.
     touch "$results/${1:5:-1}.out"
-    "./$1gol" 1000 1000 1000 -t -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
     echo -e "\tDone."
 }
 
@@ -30,7 +30,7 @@ main() {
     fi
 
     # Make folder for storing the results.
-    results="profiler/results/$(date +%Y-%m-%d-%S)"
+    results="profiler/results/$(date +%S)"
     mkdir -p "$results"
 
     # Run specific version, if specified.
