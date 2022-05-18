@@ -30,7 +30,7 @@ main() {
     fi
 
     # Make folder for storing the results.
-    results="profiler/results/$(date +%S)"
+    results="profiler/results/$(date +%s)"
     mkdir -p "$results"
 
     # Run specific version, if specified.
