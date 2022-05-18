@@ -76,3 +76,6 @@ dkms.conf
 **/config/
 **/e000/
 **/*.advixeproj
+
+# Ignore result output files from profiler and scaler.
+!profiler/results/**/*.out
