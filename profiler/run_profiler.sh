@@ -2,7 +2,7 @@
 
 # Executes the profiler for a single version, given as first argument.
 run_profiler() {
-    echo -e "\nRunning tests for ${1:5:-1}"
+    echo -en "\nRunning tests for ${1:5:-1}.."
 
     # Compile the to be tested code.
     cd "$1" || exit 4
