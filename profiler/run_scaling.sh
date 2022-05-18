@@ -11,7 +11,7 @@ run_scaling() {
     cd ../..
 
     # Run the code with different number of threads through global variable.
-    for nthreads in {1,2,4,8,12,15,16,24,32}; do
+    for nthreads in {1,2,4,8,12,15,16,17,24,32}; do
         export OMP_NUM_THREADS=$nthreads
 
         # Run the code and store output in results folder.
