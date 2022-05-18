@@ -15,6 +15,7 @@ run_scaling() {
         export OMP_NUM_THREADS=$nthreads
 
         # Run the code and store output in results folder.
+        echo -en "\tThreads: $nthreads.."
         "$3./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
         echo -e "\tDone."
     done
