@@ -41,7 +41,7 @@ main() {
     fi
 
     # Make folder for storing the results.
-    results="profiler/results/scaling_$1"
+    results="profiler/results/scaling_$1_$(date +%s)"
     mkdir -p "$results"
 
     # Check if folder with version number does exist.
