@@ -2,7 +2,7 @@
 
 # Executes the profiler for a single version, given as first argument.
 run_profiler() {
-    echo -e "\nRunning tests for ${1:5:-1}"
+    echo -en "\nRunning tests for ${1:5:-1}.."
 
     # Compile the to be tested code.
     cd "$1" || exit 4
@@ -11,16 +11,20 @@ run_profiler() {
     cd ../..
 
     # Run the code and store output in results folder.
-    touch "$results/${1:5:-1}.out"
-    "./$1gol" 1000 1000 1000 -t -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    if [ "$3" = "das" ]; then
+        prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    else
+        "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+    fi
+
     echo -e "\tDone."
 }
 
 # Main entry point of the script.
 main() {
     # Check if arguments are passed.
-    if [ $# -eq 0 ]; then
-        echo "Usage: $0 [ all | v<version> ]"
+    if [ $# -ne 2 ]; then
+        echo "Usage: $0 [all | v<version>] [local | das]"
         exit 1
     fi
 
@@ -30,8 +34,11 @@ main() {
     fi
 
     # Make folder for storing the results.
-    results="profiler/results/$(date +%Y-%m-%d-%S)"
+    results="profiler/results/profiler_$1_$(date +%s)"
     mkdir -p "$results"
+
+    # Unset the number of OpenMP threads as we test purely the code.
+    unset OMP_NUM_THREADS
 
     # Run specific version, if specified.
     if [ ! "$1" = "all" ]; then
@@ -42,11 +49,11 @@ main() {
         fi
 
         vdir=$(find . -type d -name "$1*")
-        run_profiler "${vdir:2}/" "$results"
+        run_profiler "${vdir:2}/" "$results" "$2"
     else
         # Run tests for all versions.
         for d in apps/*/; do
-            run_profiler "$d" "$results"
+            run_profiler "$d" "$results" "$2"
         done
     fi
 }
