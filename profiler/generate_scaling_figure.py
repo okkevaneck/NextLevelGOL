@@ -37,14 +37,6 @@ def gen_scaling_plot():
     # Arrays with measured values.
     data = load_results()
 
-    # # Normalize the arrays.
-    # metrics = ["wraps", "steps", "swaps", "gifs"]
-    # for _ in versions:
-    #     total = sum([norm_values[m][0] for m in metrics])
-    #     for m in metrics:
-    #         norm_values[m].append(norm_values[m][0]/total)
-    #         norm_values[m].pop(0)
-
     # Create DataFrame with normalized performance numbers.
     df = pd.DataFrame({"nthreads": threads,
                        "wrap": data["wraps"],
