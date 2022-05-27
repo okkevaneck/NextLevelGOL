@@ -58,7 +58,6 @@ void world_timestep(world *old, world *new) {
     int height = old->height;
 
     /* Update board. */
-    #pragma omp parallel for private(i, row, col, nsum) shared(cells, newcells, width, height)
     for (row = 1; row < height-1; row++) {
         i = width * row + 1;
         for (col = 1; col < width-1; col++) {

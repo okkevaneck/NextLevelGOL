@@ -1,5 +1,5 @@
 CC      = gcc
-FLAGS   = -Wall -O3 -g -std=gnu99 -fopenmp
+FLAGS   = -Wall -O3 -g -std=gnu99 -lpthread
 
 TARGET  = gol
 SRC     = $(wildcard *.c)
