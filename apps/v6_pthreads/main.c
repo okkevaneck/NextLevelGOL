@@ -12,6 +12,8 @@
 int NTHREADS = 2;
 
 struct args {
+    int id;
+    options opts;
     world *cur_world;
     world *next_world;
     FILE *output_fp;
@@ -26,9 +28,9 @@ pthread_t* init_pthreads() {
     /* Default to 2 threads if no variable was set. */
     if (nthreads_str != NULL) {
         NTHREADS = atoi(nthreads_str);
-        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS set to %d\n", NTHREADS);
+//        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS set to %d\n", NTHREADS);
     } else {
-        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS not set, defaulting to %d\n", NTHREADS);
+//        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS not set, defaulting to %d\n", NTHREADS);
     }
 
     pthread_t* threads = malloc(sizeof(pthread_t) * NTHREADS);
@@ -37,30 +39,37 @@ pthread_t* init_pthreads() {
 
 /* Join and destroy all threads. */
 void close_pthreads(pthread_t* threads) {
-    fprintf(stderr, "\n[PTHREADS]\tJoining threads\n");
+//    fprintf(stderr, "\n[PTHREADS]\tJoining threads\n");
 
     /* Join the threads. */
     for (int t = 0; t < NTHREADS; ++t) {
         pthread_join(threads[t], NULL);
     }
 
-    fprintf(stderr, "[PTHREADS]\tFreeing memory\n\n");
+//    fprintf(stderr, "[PTHREADS]\tFreeing memory\n\n");
 
     /* Free the threads. */
     free(threads);
 }
 
 /* Entry point for a thread to run its part of the simulation WITHOUT timing. */
-void run_simulation(void *args) {
-    /* Fetch variables from arguments. */
+void *run_simulation(void *args) {
+    world *tmp_world;
+
+    /* Unpack variables from arguments. */
+    int id = ((struct args *)args)->id;
+    options opts = ((struct args *)args)->opts;
     world *cur_world = ((struct args *)args)->cur_world;
     world *next_world = ((struct args *)args)->next_world;
     FILE *output_fp = ((struct args *)args)->output_fp;
 
     /* Run time steps. */
-    for (int n = 0; n < opts.steps; n++) {
-        world *tmp_world;
+    if (id != 0) {
+        return;
+    }
 
+    /* Run time steps. */
+    for (int n = 0; n < opts.steps; n++) {
         world_border_timestep(cur_world, next_world);
         world_timestep(cur_world, next_world);
 
@@ -78,10 +87,15 @@ void run_simulation(void *args) {
             write_gif_frame(cur_world->width, cur_world->height, cur_world->cells[0], output_fp);
         }
     }
+
+    return NULL;
 }
 
 /* Entry point for a thread to run its part of the simulation WITH timing. */
-void run_simulation_timed(void *args) {
+void *run_simulation_timed(void *args) {
+    world *tmp_world;
+
+    /* Declare timing variables. */
     struct timeval tv;
     double time_start, time_end, total;
     double wrap = 0.0;
@@ -89,15 +103,19 @@ void run_simulation_timed(void *args) {
     double swap = 0.0;
     double gif  = 0.0;
 
-    /* Fetch variables from arguments. */
+    /* Unpack variables from arguments. */
+    int id = ((struct args *)args)->id;
+    options opts = ((struct args *)args)->opts;
     world *cur_world = ((struct args *)args)->cur_world;
     world *next_world = ((struct args *)args)->next_world;
     FILE *output_fp = ((struct args *)args)->output_fp;
 
     /* Run time steps. */
-    for (int n = 0; n < opts.steps; n++) {
-        world *tmp_world;
+    if (id != 0) {
+        return;
+    }
 
+    for (int n = 0; n < opts.steps; n++) {
         time_start = time_secs(tv);
         world_border_timestep(cur_world, next_world);
         time_end = time_secs(tv);
@@ -132,16 +150,20 @@ void run_simulation_timed(void *args) {
     }
 
     /* Print timing data */
-    total = wrap + step + swap + gif;
-    fprintf(stderr, "Total time spent in each part:\n");
-    fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
-    fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
-    fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
-    fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
-    fprintf(stderr, "  -----------------------------------\n");
-    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
+    if (id == 0) {
+        total = wrap + step + swap + gif;
+        fprintf(stderr, "Total time spent in each part:\n");
+        fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
+        fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
+        fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
+        fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
+        fprintf(stderr, "  -----------------------------------\n");
+        fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
 
-    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+        fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+    }
+
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -209,6 +231,8 @@ int main(int argc, char *argv[]) {
     struct args args[NTHREADS];
 
     for (int t = 0; t < NTHREADS; ++t) {
+        args[t].id = t;
+        args[t].opts = opts;
         args[t].cur_world = cur_world;
         args[t].next_world = next_world;
         args[t].output_fp = output_fp;
