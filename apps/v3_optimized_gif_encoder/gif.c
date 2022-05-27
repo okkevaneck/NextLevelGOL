@@ -14,9 +14,6 @@
 
 #include "gif.h"
 
-#define BYTES_PER_BLOCK 126
-#define MIN(a, b) a < b ? a : b
-
 /* Macro to write little endian. */
 void lwrite(uint16_t *p, FILE *f) {
     fwrite((uint8_t[]) {(*p) & 0xFF, (*p) >> 8}, 2, 1, f);

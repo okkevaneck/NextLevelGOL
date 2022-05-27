@@ -92,7 +92,7 @@ void write_gif_frame(uint16_t width, uint16_t height, uint8_t *image, FILE *file
     while(remaining > 0) {
         remaining--;
         size++;
-        if (size == 126 || remaining == 0) {
+        if (size == BYTES_PER_BLOCK || remaining == 0) {
             cwrite(size + 1, file);  // How many bytes will follow.
             cwrite(0x80, file);      // Clear code (1000 0000)
             fwrite(ptr, size, 1, file);
