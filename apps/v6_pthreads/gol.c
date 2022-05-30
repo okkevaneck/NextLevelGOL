@@ -27,19 +27,19 @@ void world_border_timestep(world *old, world *new) {
     int width  = old->width;
     int height = old->height;
 
-    /* Corners */
+    /* Corners. */
     new->cells[0][0]              = get_newval(old, width-1, 0, 1, height-1, 0, 1);
     new->cells[0][width-1]        = get_newval(old, width-2, width-1, 0, height-1, 0, 1);
     new->cells[height-1][0]       = get_newval(old, width-1, 0, 1, height-2, height-1, 0);
     new->cells[height-1][width-1] = get_newval(old, width-2, width-1, 0, height-2, height-1, 0);
 
-    /* Top and bottom rows */
+    /* Top and bottom rows. */
     for (i = 1; i < width-1; i++) {
         new->cells[0][i]        = get_newval(old, i-1, i, i+1, height-1, 0, 1);
         new->cells[height-1][i] = get_newval(old, i-1, i, i+1, height-2, height-1, 0);
     }
 
-    /* Left and right column */
+    /* Left and right column. */
     for (i = 1; i < height-1; i++) {
         new->cells[i][0]       = get_newval(old, width-1, 0, 1, i-1, i, i+1);
         new->cells[i][width-1] = get_newval(old, width-2, width-1, 0, i-1, i, i+1);
