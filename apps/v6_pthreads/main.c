@@ -9,7 +9,7 @@
 #include "opts.h"
 #include "util.h"
 
-//#define DEBUG_PTHREADS
+#define DEBUG_PTHREADS
 
 int NTHREADS = 1;
 
@@ -73,24 +73,34 @@ void *run_simulation(void *args) {
     world *next_world = ((struct args *)args)->next_world;
     FILE *output_fp = ((struct args *)args)->output_fp;
 
-    /* Create barrier for internal synchronization. */
-    pthread_barrier_t step_barrier;
+    /* Create barriers for internal synchronization. */
+    pthread_barrier_t step_barrier, border_barrier;
 
-    if (pthread_barrier_init(&step_barrier, NULL, NTHREADS)) {
+    if (pthread_barrier_init(&step_barrier, NULL, NTHREADS + 1)) {
         fprintf(stderr, "Failed to create step_barrier..");
         exit(1);
     }
+
+    /* Border cells are updated by 2 threads only. */
+    if (pthread_barrier_init(&border_barrier, NULL, 2)) {
+        fprintf(stderr, "Failed to create border_barrier..");
+        exit(1);
+    }
+
+    printf("Thread with ID %d arrived\n", id);
 
     /* Run time steps. */
     for (int n = 0; n < opts.steps; n++) {
         /* Only two threads handle the border updates. */
 //        if (id <= 1) {
         if (id == 0) {
-            world_border_timestep(cur_world, next_world);
+            world_border_timestep(cur_world, next_world, id, &border_barrier);
         }
 
         /* Let threads wait until borders are updated, then update world. */
+        printf("Before barrier %d\n", id);
         pthread_barrier_wait(&step_barrier);
+        printf("After barrier %d\n", id);
 
         if (id == 0) {
             world_timestep(cur_world, next_world);
@@ -114,11 +124,14 @@ void *run_simulation(void *args) {
         }
     }
 
-    // TODO: Should we wait for threads here?
-
     /* Destroy the created barriers. */
     if (pthread_barrier_destroy(&step_barrier)) {
         fprintf(stderr, "Failed to destroy step_barrier..");
+        exit(1);
+    }
+
+    if (pthread_barrier_destroy(&border_barrier)) {
+        fprintf(stderr, "Failed to destroy border_barrier..");
         exit(1);
     }
 
@@ -152,7 +165,7 @@ void *run_simulation_timed(void *args) {
     /* Run time steps. */
     for (int n = 0; n < opts.steps; n++) {
         time_start = time_secs(tv);
-        world_border_timestep(cur_world, next_world);
+        world_border_timestep(cur_world, next_world, id, NULL);
         time_end = time_secs(tv);
         wrap += time_end - time_start;
 
@@ -275,8 +288,8 @@ int main(int argc, char *argv[]) {
 
     /* Based on settings, run threads with or without timing code. */
     if (opts.time_code != 0) {
-        for (int t = 1; t <= NTHREADS; t++) {
-            if (pthread_create(&threads[t - 1], NULL, run_simulation_timed, &args[t])) {
+        for (int t = 0; t < NTHREADS; t++) {
+            if (pthread_create(&threads[t], NULL, run_simulation_timed, &args[t + 1])) {
                 fprintf(stderr, "Failed to create thread %d. Exiting..", t);
                 exit(1);
             }
@@ -285,14 +298,16 @@ int main(int argc, char *argv[]) {
         /* Main thread also processes work. */
         run_simulation_timed(&args[0]);
     } else {
-        for (int t = 1; t <= NTHREADS; t++) {
-            if (pthread_create(&threads[t - 1], NULL, run_simulation, &args[t])) {
+        for (int t = 0; t < NTHREADS; t++) {
+            printf("Starting thread %d..\n", t+1);
+            if (pthread_create(&threads[t], NULL, run_simulation, &args[t + 1])) {
                 fprintf(stderr, "Failed to create thread %d. Exiting..", t);
                 exit(1);
             }
         }
 
         /* Main thread also processes work. */
+        printf("Starting main thread..\n");
         run_simulation(&args[0]);
     }
 

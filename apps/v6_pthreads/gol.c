@@ -1,5 +1,7 @@
 #include "gol.h"
 
+#include "stdio.h"//TODO: Remove me!
+
 static pixel_t get_newval(world *world, int lft, int h_mid, int rgt, int top, int v_mid, int bot) {
     pixel_t **cells = world->cells;
     int nsum;
@@ -22,28 +24,75 @@ static pixel_t get_newval(world *world, int lft, int h_mid, int rgt, int top, in
 }
 
 /* Take world wrap-around into account: */
-void world_border_timestep(world *old, world *new) {
+void world_border_timestep(world *old, world *new, int id, pthread_barrier_t *border_barrier) {
     int i;
     int width  = old->width;
     int height = old->height;
 
-    /* Corners. */
+    /* Corners */
     new->cells[0][0]              = get_newval(old, width-1, 0, 1, height-1, 0, 1);
     new->cells[0][width-1]        = get_newval(old, width-2, width-1, 0, height-1, 0, 1);
     new->cells[height-1][0]       = get_newval(old, width-1, 0, 1, height-2, height-1, 0);
     new->cells[height-1][width-1] = get_newval(old, width-2, width-1, 0, height-2, height-1, 0);
 
-    /* Top and bottom rows. */
+    /* Top and bottom rows */
     for (i = 1; i < width-1; i++) {
         new->cells[0][i]        = get_newval(old, i-1, i, i+1, height-1, 0, 1);
         new->cells[height-1][i] = get_newval(old, i-1, i, i+1, height-2, height-1, 0);
     }
 
-    /* Left and right column. */
+    /* Left and right column */
     for (i = 1; i < height-1; i++) {
         new->cells[i][0]       = get_newval(old, width-1, 0, 1, i-1, i, i+1);
         new->cells[i][width-1] = get_newval(old, width-2, width-1, 0, i-1, i, i+1);
     }
+
+//    int i;
+//    int width  = old->width;
+//    int height = old->height;
+//
+//    /* ID 0 processes top half, ID 1 bottom half.
+//     * First process corners, then process the top and bottom rows.
+//     */
+//    if (id == 0) {
+//        /* Update top corners. */
+//        new->cells[0][0]              = get_newval(old, width-1, 0, 1, height-1, 0, 1);
+//        new->cells[0][width-1]        = get_newval(old, width-2, width-1, 0, height-1, 0, 1);
+//
+//        printf("Barrier wait for id 0\n");
+//        pthread_barrier_wait(border_barrier);
+//        printf("Barrier wait after id 0\n");
+//
+//        /* Update top row. */
+//        for (i = 1; i < width - 1; i++) {
+//            new->cells[0][i] = get_newval(old, i - 1, i, i + 1, height - 1, 0, 1);
+//        }
+//
+//        /* Update top half of the columns. */
+//        for (i = 1; i < (height - 1) / 2; i++) {
+//            new->cells[i][0]       = get_newval(old, width-1, 0, 1, i-1, i, i+1);
+//            new->cells[i][width-1] = get_newval(old, width-2, width-1, 0, i-1, i, i+1);
+//        }
+//    } else {
+//        /* Update bottom corners. */
+//        new->cells[height-1][0]       = get_newval(old, width-1, 0, 1, height-2, height-1, 0);
+//        new->cells[height-1][width-1] = get_newval(old, width-2, width-1, 0, height-2, height-1, 0);
+//
+//        printf("Barrier wait for id 1\n");
+//        pthread_barrier_wait(border_barrier);
+//        printf("Barrier wait after id 1\n");
+//
+//        /* Update bottom row. */
+//        for (i = 1; i < width - 1; i++) {
+//            new->cells[height-1][i] = get_newval(old, i-1, i, i+1, height-2, height-1, 0);
+//        }
+//
+//        /* Update top half of the columns. */
+//        for (i = (height - 1) / 2; i < height - 1; i++) {
+//            new->cells[i][0]       = get_newval(old, width-1, 0, 1, i-1, i, i+1);
+//            new->cells[i][width-1] = get_newval(old, width-2, width-1, 0, i-1, i, i+1);
+//        }
+//    }
 }
 
 /* Update board for next time step.
