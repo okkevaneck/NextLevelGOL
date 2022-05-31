@@ -19,16 +19,25 @@ def load_results():
         for run_fp in fs:
             with open(run_fp, "r") as fp:
                 lines = fp.readlines()
-                value = {"version": v,
-                         "init": float(lines[1][12:17]),
-                         "wrap": float(lines[2][12:17]),
-                         "step": float(lines[3][12:17]),
-                         "swap": float(lines[4][12:17]),
-                         "gif": float(lines[5][12:17]),
-                         "final": float(lines[6][12:17]),
-                         "total": float(lines[8][11:16]),
-                         "throughput": float(lines[10][12:18])}
-                rows.append(value)
+                rows.append({"version": v, "type": "init", "value": float(lines[1][12:17])})
+                rows.append({"version": v, "type": "wrap", "value": float(lines[2][12:17])})
+                rows.append({"version": v, "type": "step", "value": float(lines[3][12:17])})
+                rows.append({"version": v, "type": "swap", "value": float(lines[4][12:17])})
+                rows.append({"version": v, "type": "gif", "value": float(lines[5][12:17])})
+                rows.append({"version": v, "type": "final", "value": float(lines[6][12:17])})
+                # rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                # rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:18])})
+
+                # value = {"version": v,
+                #          "init": float(lines[1][12:17]),
+                #          "wrap": float(lines[2][12:17]),
+                #          "step": float(lines[3][12:17]),
+                #          "swap": float(lines[4][12:17]),
+                #          "gif": float(lines[5][12:17]),
+                #          "final": float(lines[6][12:17]),
+                #          "total": float(lines[8][11:16]),
+                #          "throughput": float(lines[10][12:18])}
+                # rows.append(value)
 
     values = pd.DataFrame(rows)
 
@@ -37,16 +46,30 @@ def load_results():
 
 def gen_barplot():
     # Arrays with measured values.
-    values = load_results()
+    df = load_results()
 
     # Make normalized DataFrame.
-    df = values.iloc[:, 1:7] = values.iloc[:, 1:7].div(values.iloc[:, 1:7].sum(axis=1), axis=0)
+    # df = values.iloc[:, 1:7] = values.iloc[:, 1:7].div(values.iloc[:, 1:7].sum(axis=1), axis=0)
+    print(df)
 
-    # Create DataFrame with error bars
+    # Create DataFrame with mean values.
+    df_mean = df.pivot_table(index="version",
+                            columns="type",
+                            values="value",
+                            aggfunc="mean")
+
+    print(df_mean)
+
+    # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="version",
-                            columns=["init", "wrap", "step", "swap", "gif", "final"],
-                            values='bill_depth_mm',
-                            aggfunc='std')
+                            columns="type",
+                            values="value",
+                            aggfunc="std")
+    print(df_std)
+
+    # plot the dataframe and add yerr
+    ax = df_mean.plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std)
+    plt.show()
 
     # TODO: https://stackoverflow.com/questions/70333645/how-to-annotate-bar-plots-when-adding-error-bars
 
