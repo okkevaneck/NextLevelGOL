@@ -11,7 +11,7 @@ typedef struct {
     pixel_t **cells;
 } world;
 
-void world_border_timestep(world *old, world *new, int id, pthread_barrier_t *border_barrier);
+void world_border_timestep(world *old, world *new);
 void world_timestep(world *old, world *new);
 
 #endif

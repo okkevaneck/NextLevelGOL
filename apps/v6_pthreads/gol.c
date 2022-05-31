@@ -24,7 +24,7 @@ static pixel_t get_newval(world *world, int lft, int h_mid, int rgt, int top, in
 }
 
 /* Take world wrap-around into account: */
-void world_border_timestep(world *old, world *new, int id, pthread_barrier_t *border_barrier) {
+void world_border_timestep(world *old, world *new) {
     int i;
     int width  = old->width;
     int height = old->height;
