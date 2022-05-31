@@ -13,6 +13,8 @@
 #include "opts.h"
 #include "util.h"
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 struct world_step_args {
     int start_row, end_row, steps;
     world *cur_world, *next_world;
@@ -27,10 +29,24 @@ void *world_step_thread(void *args) {
     world *next_world          = ((struct world_step_args *)args)->next_world;
     pthread_barrier_t *barrier = ((struct world_step_args *)args)->barrier;
 
+#ifdef TIMED
+    struct timeval tv;
+    double time_start, time_end;
+    double *elapsed_time = malloc(sizeof(double));  // Free in main!
+    *elapsed_time = 0;
+#endif
+
     /* Time steps... */
     world *tmp_world;
     for(int n = 0; n < steps; n++) {
+#ifdef TIMED
+        time_start = time_secs(tv);
+#endif
         world_timestep(cur_world, next_world, start_row, end_row);
+#ifdef TIMED
+        time_end = time_secs(tv);
+        *elapsed_time += time_end - time_start;
+#endif
 
         /* Swap old and new worlds. */
         tmp_world = cur_world;
@@ -40,7 +56,11 @@ void *world_step_thread(void *args) {
         pthread_barrier_wait(barrier);
     }
 
-    return NULL;
+#ifdef TIMED
+    pthread_exit(elapsed_time);
+#else
+    pthread_exit(NULL);
+#endif
 }
 
 int main(int argc, char *argv[]) {
@@ -183,7 +203,14 @@ int main(int argc, char *argv[]) {
 #endif
     /* Stop the threads */
     for (int i = 0; i < opts.threads; i++) {
+#ifdef TIMED
+        double *thread_time = NULL;
+        pthread_join(thread[i], (void **)&thread_time);
+        step = MAX(step, *thread_time);
+        free(thread_time);  // Allocated in thread that no longer exists!
+#else
         pthread_join(thread[i], NULL);
+#endif
     }
     free(thread);
     free(thread_args);
