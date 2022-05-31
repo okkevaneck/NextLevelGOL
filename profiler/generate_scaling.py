@@ -1,5 +1,5 @@
 """
-Generate figures for
+Generate figures for scaling plots.
 """
 import seaborn as sns
 import pandas as pd
@@ -10,11 +10,13 @@ import glob
 
 
 def load_results():
-    norm_values = {
+    values = {
+        "inits": [],
         "wraps": [],
         "steps": [],
         "swaps": [],
         "gifs": [],
+        "finals": [],
         "throughput": [],
     }
 
@@ -24,13 +26,15 @@ def load_results():
         with open(fs[0], "r") as fp:
             lines = fp.readlines()
 
-            norm_values["wraps"].append(float(lines[1][11:16]))
-            norm_values["steps"].append(float(lines[2][11:16]))
-            norm_values["swaps"].append(float(lines[3][11:16]))
-            norm_values["gifs"].append(float(lines[4][11:16]))
-            norm_values["throughput"].append(float(lines[8][12:18]))
+            values["inits"].append(float(lines[1][11:16]))
+            values["wraps"].append(float(lines[2][11:16]))
+            values["steps"].append(float(lines[3][11:16]))
+            values["swaps"].append(float(lines[4][11:16]))
+            values["gifs"].append(float(lines[5][11:16]))
+            values["finals"].append(float(lines[6][11:16]))
+            values["throughput"].append(float(lines[10][12:18]))
 
-    return norm_values
+    return values
 
 
 def gen_scaling_plot():

@@ -1,5 +1,5 @@
 """
-Generate figures for
+Generate figures for throughput plots.
 """
 import seaborn as sns
 import pandas as pd
@@ -10,11 +10,13 @@ import glob
 
 
 def load_results():
-    norm_values = {
+    values = {
+        "inits": [],
         "wraps": [],
         "steps": [],
         "swaps": [],
         "gifs": [],
+        "finals": [],
         "throughput": [],
     }
 
@@ -24,51 +26,15 @@ def load_results():
         with open(fs[0], "r") as fp:
             lines = fp.readlines()
 
-            norm_values["wraps"].append(float(lines[1][11:16]))
-            norm_values["steps"].append(float(lines[2][11:16]))
-            norm_values["swaps"].append(float(lines[3][11:16]))
-            norm_values["gifs"].append(float(lines[4][11:16]))
-            norm_values["throughput"].append(float(lines[8][12:18]))
+            values["inits"].append(float(lines[1][11:16]))
+            values["wraps"].append(float(lines[2][11:16]))
+            values["steps"].append(float(lines[3][11:16]))
+            values["swaps"].append(float(lines[4][11:16]))
+            values["gifs"].append(float(lines[5][11:16]))
+            values["finals"].append(float(lines[6][11:16]))
+            values["throughput"].append(float(lines[10][12:18]))
 
-    return norm_values
-
-
-def gen_barplot():
-    # Arrays with measured values.
-    norm_values = load_results()
-
-    # Normalize the arrays.
-    metrics = ["wraps", "steps", "swaps", "gifs"]
-    for _ in versions:
-        total = sum([norm_values[m][0] for m in metrics])
-        for m in metrics:
-            norm_values[m].append(norm_values[m][0]/total)
-            norm_values[m].pop(0)
-
-    # Create DataFrame with normalized performance numbers.
-    df = pd.DataFrame({"Version": versions,
-                       "wrap": norm_values["wraps"],
-                       "step": norm_values["steps"],
-                       "swap": norm_values["swaps"],
-                       "gif":  norm_values["gifs"]})
-
-    # Setup stacked barchart.
-    sns.set(style="white")
-    df.set_index("Version").plot(kind="bar", stacked=True)
-
-    # Add info to plot.
-    plt.title("Relative time spend per version", fontsize=16)
-    plt.xlabel("Versions", labelpad=0)
-    plt.ylabel("Relative time spend")
-    plt.xticks(rotation=45)
-    ax = plt.gca()
-    ax.tick_params(axis="both", which="major", pad=0)
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-    plt.tight_layout()
-
-    # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}")
-    plt.show()
+    return values
 
 
 def gen_throughput():
@@ -127,9 +93,6 @@ if __name__ == "__main__":
         if len(files) == 0:
             print(f"Results for version '{ver}' do not exist..")
             exit(1)
-
-    # # Generate normalized bar plot with the given versions.
-    # gen_barplot()
 
     # Generate throughput plot with the given versions.
     gen_throughput()
