@@ -1,1 +1,1 @@
-../v5_openmp/Makefile
+../v5.0_openmp/Makefile
