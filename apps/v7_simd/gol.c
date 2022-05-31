@@ -52,11 +52,12 @@ void world_border_timestep(world *old, world *new) {
  * Height/width params are the base height/width.
  * Excluding the surrounding 1-cell wraparound border.
  */
-void world_timestep(world *old, world *new, int start_row, int end_row) {
+void world_timestep(world *old, world *new) {
     pixel_t *cells = *old->cells;
     pixel_t *newcells = *new->cells;
     int row, col, i, nsum_i;
-    int width = old->width;
+    int width  = old->width;
+    int height = old->height;
 
     __m256i nb[9];
     __m256i nsum;
@@ -71,8 +72,8 @@ void world_timestep(world *old, world *new, int start_row, int end_row) {
     __m256i three = _mm256_loadu_si256((void *)&three_i);
 
     /* Update board. */
-    i = start_row * width + 1;
-    for (row = start_row; row < end_row; row++) {
+    i = width+1;
+    for (row = 1; row < height-1; row++) {
         for (col = 1; col+31 < width-1; col += 32) {
             /* Load the local (3x3) neighborhood. */
             nb[0] = _mm256_loadu_si256((void *)(cells+i-width-1));

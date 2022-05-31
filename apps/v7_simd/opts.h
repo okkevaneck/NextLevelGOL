@@ -1,1 +1,1 @@
-../v6.0_pthreads/opts.h
+../v0_reference/opts.h
