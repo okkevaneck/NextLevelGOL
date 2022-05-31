@@ -12,6 +12,6 @@ typedef struct {
 } world;
 
 void world_border_timestep(world *old, world *new);
-void world_timestep(world *old, world *new);
+void world_timestep(world *old, world *new, int start_row, int end_row);
 
 #endif

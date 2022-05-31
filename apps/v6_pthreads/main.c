@@ -11,11 +11,13 @@
 
 #define DEBUG_PTHREADS
 
-/* NTHREADS defines the number of extra worker threads. */
+/* NTHREADS defines the number of threads, including the main thread. */
 int NTHREADS = 1;
 
 struct args {
     int id;
+    int start_row;
+    int end_row;
     int steps;
     world *cur_world;
     world *next_world;
@@ -40,7 +42,7 @@ pthread_t* init_pthreads() {
 #endif
     }
 
-    pthread_t* threads = malloc(sizeof(pthread_t) * NTHREADS);
+    pthread_t* threads = malloc(sizeof(pthread_t) * (NTHREADS - 1));
     return threads;
 }
 
@@ -51,7 +53,7 @@ void close_pthreads(pthread_t* threads) {
 #endif
 
     /* Join the threads. */
-    for (int t = 0; t < NTHREADS; ++t) {
+    for (int t = 0; t < NTHREADS - 1; ++t) {
         pthread_join(threads[t], NULL);
     }
 
@@ -63,10 +65,21 @@ void close_pthreads(pthread_t* threads) {
     free(threads);
 }
 
+/* Returns the minimum of x and y without branching. */
+int min(int x, int y) {
+    return y ^ ((x ^ y) & -(x < y));
+}
+
+/* Returns the maximum of x and y without branching. */
+int max(int x, int y) {
+    return x ^ ((x ^ y) & -(x < y));
+}
+
 /* Called by worker thread to help main thread update the world. */
 void *worker_thread(void *args) {
     /* Unpack variables from arguments. */
-    int id = ((struct args *)args)->id;
+    int start_row = ((struct args *)args)->start_row;
+    int end_row = ((struct args *)args)->end_row;
     int steps = ((struct args *)args)->steps;
     world *cur_world = ((struct args *)args)->cur_world;
     world *next_world = ((struct args *)args)->next_world;
@@ -77,7 +90,7 @@ void *worker_thread(void *args) {
     /* Run time steps. */
     for (int n = 0; n < steps; n++) {
         /* Update portion of the world. */
-//        world_timestep(cur_world, next_world);
+//        world_timestep(cur_world, next_world, start_row, end_row);
 
         /* Wait for all threads to finish their work. */
         pthread_barrier_wait(step_barrier);
@@ -93,7 +106,8 @@ void *worker_thread(void *args) {
 
 /* Called by the main thread to update the world. */
 void main_thread(world *cur_world, world *next_world,
-                 pthread_barrier_t* step_barrier, options opts, FILE *output_fp) {
+                 pthread_barrier_t* step_barrier, options opts, FILE *output_fp,
+                 int end_row) {
     /* Declare timing variables. */
     struct timeval tv;
     double time_start, time_end, total;
@@ -114,7 +128,7 @@ void main_thread(world *cur_world, world *next_world,
 
         /* Update rest of the world. */
         time_start = time_secs(tv);
-        world_timestep(cur_world, next_world);
+        world_timestep(cur_world, next_world, 1, end_row);
         time_end = time_secs(tv);
         step += time_end - time_start;
 
@@ -129,13 +143,8 @@ void main_thread(world *cur_world, world *next_world,
         time_end = time_secs(tv);
         swap += time_end - time_start;
 
+        /* Time GIF output. */
         time_start = time_secs(tv);
-
-        if (opts.verbose != 0) {
-            printf("World contains %d live cells after time step %d:\n\n",
-                   world_count(cur_world), n);
-            world_print(cur_world);
-        }
 
         if (opts.use_output != 0) {
             write_gif_frame(cur_world->width, cur_world->height,
@@ -144,6 +153,13 @@ void main_thread(world *cur_world, world *next_world,
 
         time_end = time_secs(tv);
         gif += time_end - time_start;
+
+        /* Print world if verbose option is set. */
+        if (opts.verbose != 0) {
+            printf("World contains %d live cells after time step %d:\n\n",
+                   world_count(cur_world), n);
+            world_print(cur_world);
+        }
     }
 
     /* Print timing data */
@@ -223,17 +239,25 @@ int main(int argc, char *argv[]) {
     /* Create barrier for lock-step synchronization of threads. */
     pthread_barrier_t step_barrier;
 
-    if (pthread_barrier_init(&step_barrier, NULL, NTHREADS + 1)) {
+    if (pthread_barrier_init(&step_barrier, NULL, NTHREADS)) {
         fprintf(stderr, "Failed to create step_barrier..");
         exit(1);
     }
 
     /* Setup args for each thread and the main thread. */
-    struct args args[NTHREADS];
+    struct args args[NTHREADS - 1];
 
-    for (int t = 0; t < NTHREADS; ++t) {
-        /* ID 0 is reserved for the main thread. */
-        args[t].id = t + 1;
+    /* World rows are divided equally, meaning some threads have one more. */
+    int inner_height = opts.height - 2;
+    int extra_rows = inner_height % NTHREADS;
+
+    for (int t = 0; t < NTHREADS - 1; ++t) {
+        /* Compute start and end row that will be processed by this thread.
+         * The first n rows are reserved for the main thread.
+         */
+        args[t].start_row = (t + 1) * inner_height / NTHREADS + min(t + 1, extra_rows);
+        args[t].end_row = args[t].start_row + inner_height / NTHREADS + max(extra_rows - t + 1, 0);
+
         args[t].steps = opts.steps;
         args[t].cur_world = cur_world;
         args[t].next_world = next_world;
@@ -241,15 +265,16 @@ int main(int argc, char *argv[]) {
     }
 
     /* Spawn worker threads to work. */
-    for (int t = 0; t < NTHREADS; t++) {
+    for (int t = 0; t < NTHREADS - 1; t++) {
         if (pthread_create(&threads[t], NULL, worker_thread, &args[t])) {
             fprintf(stderr, "Failed to create thread %d. Exiting..", t);
             exit(1);
         }
     }
 
-    /* Main thread also processes work. */
-    main_thread(cur_world, next_world, &step_barrier, opts, output_fp);
+    /* Main thread also processes the first n rows. */
+    int end_row = inner_height / NTHREADS + min(1, extra_rows);
+    main_thread(cur_world, next_world, &step_barrier, opts, output_fp, end_row);
 
     /* Join and destroy threads after work is done. */
     close_pthreads(threads);

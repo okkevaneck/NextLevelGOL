@@ -99,7 +99,7 @@ void world_border_timestep(world *old, world *new) {
  * Height/width params are the base height/width.
  * Excluding the surrounding 1-cell wraparound border.
  */
-void world_timestep(world *old, world *new) {
+void world_timestep(world *old, world *new, int start_row, int end_row) {
     pixel_t *cells = *old->cells;
     pixel_t *newcells = *new->cells;
     int row, col, i, nsum;
@@ -107,7 +107,7 @@ void world_timestep(world *old, world *new) {
     int height = old->height;
 
     /* Update board. */
-    for (row = 1; row < height-1; row++) {
+    for (row = start_row; row <= end_row; row++) {
         i = width * row + 1;
         for (col = 1; col < width-1; col++) {
             /* Calculate sum of local (3x3) neighborhood, excluding the middle cell. */
