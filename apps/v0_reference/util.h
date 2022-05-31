@@ -2,6 +2,7 @@
 #define UTIL_H
 
 int **alloc_2d_int_array(int nrows, int ncolumns);
+void free_2d_int_array(int **array);
 
 void world_load(world *world, FILE* world_fp);
 void world_init_random(world *world, unsigned int seed);

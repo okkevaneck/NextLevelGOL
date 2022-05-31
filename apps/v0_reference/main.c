@@ -138,6 +138,8 @@ int main(int argc, char *argv[]) {
         write_gif_trailer(output_fp);
         fclose(output_fp);
     }
+    free_2d_int_array(cur_world->cells);
+    free_2d_int_array(next_world->cells);
 #ifdef TIMED
     time_end = time_secs(tv);
     final = time_end - time_start;
