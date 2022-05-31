@@ -10,69 +10,90 @@ import glob
 
 
 def load_results():
-    values = {
-        "inits": [],
-        "wraps": [],
-        "steps": [],
-        "swaps": [],
-        "gifs": [],
-        "finals": [],
-        "throughput": [],
-    }
+    rows = []
 
     # Load results in variables.
     for v in versions:
-        fs = glob.glob(f"results/{results_folder}/{v}_*")
-        with open(fs[0], "r") as fp:
-            lines = fp.readlines()
+        fs = glob.glob(f"results/{results_folder}/{v}_*.out")
 
-            values["inits"].append(float(lines[1][11:16]))
-            values["wraps"].append(float(lines[2][11:16]))
-            values["steps"].append(float(lines[3][11:16]))
-            values["swaps"].append(float(lines[4][11:16]))
-            values["gifs"].append(float(lines[5][11:16]))
-            values["finals"].append(float(lines[6][11:16]))
-            values["throughput"].append(float(lines[10][12:18]))
+        for run_fp in fs:
+            with open(run_fp, "r") as fp:
+                lines = fp.readlines()
+                rows.append({"version": v, "type": "init", "value": float(lines[1][12:17])})
+                rows.append({"version": v, "type": "wrap", "value": float(lines[2][12:17])})
+                rows.append({"version": v, "type": "step", "value": float(lines[3][12:17])})
+                rows.append({"version": v, "type": "swap", "value": float(lines[4][12:17])})
+                rows.append({"version": v, "type": "gif", "value": float(lines[5][12:17])})
+                rows.append({"version": v, "type": "final", "value": float(lines[6][12:17])})
+                # rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                # rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:18])})
+
+                # value = {"version": v,
+                #          "init": float(lines[1][12:17]),
+                #          "wrap": float(lines[2][12:17]),
+                #          "step": float(lines[3][12:17]),
+                #          "swap": float(lines[4][12:17]),
+                #          "gif": float(lines[5][12:17]),
+                #          "final": float(lines[6][12:17]),
+                #          "total": float(lines[8][11:16]),
+                #          "throughput": float(lines[10][12:18])}
+                # rows.append(value)
+
+    values = pd.DataFrame(rows)
 
     return values
 
 
 def gen_barplot():
     # Arrays with measured values.
-    norm_values = load_results()
+    df = load_results()
 
-    # Normalize the arrays.
-    metrics = ["wraps", "steps", "swaps", "gifs"]
-    for _ in versions:
-        total = sum([norm_values[m][0] for m in metrics])
-        for m in metrics:
-            norm_values[m].append(norm_values[m][0]/total)
-            norm_values[m].pop(0)
+    # Make normalized DataFrame.
+    # df = values.iloc[:, 1:7] = values.iloc[:, 1:7].div(values.iloc[:, 1:7].sum(axis=1), axis=0)
+    print(df)
 
-    # Create DataFrame with normalized performance numbers.
-    df = pd.DataFrame({"Version": versions,
-                       "wrap": norm_values["wraps"],
-                       "step": norm_values["steps"],
-                       "swap": norm_values["swaps"],
-                       "gif":  norm_values["gifs"]})
+    # Create DataFrame with mean values.
+    df_mean = df.pivot_table(index="version",
+                            columns="type",
+                            values="value",
+                            aggfunc="mean")
 
-    # Setup stacked barchart.
-    sns.set(style="white")
-    df.set_index("Version").plot(kind="bar", stacked=True)
+    print(df_mean)
 
-    # Add info to plot.
-    plt.title("Relative time spend per version", fontsize=16)
-    plt.xlabel("Versions", labelpad=0)
-    plt.ylabel("Relative time spend")
-    plt.xticks(rotation=45)
-    ax = plt.gca()
-    ax.tick_params(axis="both", which="major", pad=0)
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-    plt.tight_layout()
+    # Create DataFrame for the error bars (std).
+    df_std = df.pivot_table(index="version",
+                            columns="type",
+                            values="value",
+                            aggfunc="std")
+    print(df_std)
 
-    # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}")
+    # plot the dataframe and add yerr
+    ax = df_mean.plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std)
     plt.show()
+
+    # TODO: https://stackoverflow.com/questions/70333645/how-to-annotate-bar-plots-when-adding-error-bars
+
+    #
+    # # plot the dataframe and add yerr
+    # ax = pen_mean.plot(kind='bar', stacked=True, figsize=(9, 6), rot=0, yerr=pen_std)
+
+    # # Setup stacked barchart.
+    # sns.set(style="white")
+    # df.set_index("Version").plot(kind="bar", stacked=True)
+    #
+    # # Add info to plot.
+    # plt.title("Relative time spend per version", fontsize=16)
+    # plt.xlabel("Versions", labelpad=0)
+    # plt.ylabel("Relative time spend")
+    # plt.xticks(rotation=45)
+    # ax = plt.gca()
+    # ax.tick_params(axis="both", which="major", pad=0)
+    # ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    # plt.tight_layout()
+    #
+    # # Save and show plot.
+    # plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}")
+    # plt.show()
 
 
 if __name__ == "__main__":
