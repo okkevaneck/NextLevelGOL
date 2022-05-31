@@ -30,6 +30,11 @@ pixel_t **alloc_2d_int_array(int nrows, int ncolumns) {
     return array;
 }
 
+void free_2d_int_array(pixel_t **array) {
+    free(array[0]);
+    free(array);
+}
+
 void world_load(world *world, FILE* world_fp) {
     pixel_t **cells = world->cells;
     int i, j, k;
