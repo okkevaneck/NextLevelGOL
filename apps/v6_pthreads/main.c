@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef TIMED
 #include <sys/time.h>
+#endif
+
 #include <pthread.h>
 
 #include "gif.h"
@@ -9,175 +13,76 @@
 #include "opts.h"
 #include "util.h"
 
-#define DEBUG_PTHREADS
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-/* NTHREADS defines the number of threads, including the main thread. */
-int NTHREADS = 2;
-
-struct args {
-    int id;
-    int start_row;
-    int end_row;
-    int steps;
-    world *cur_world;
-    world *next_world;
-    pthread_barrier_t *step_barrier;
+struct world_step_args {
+    int start_row, end_row, steps;
+    world *cur_world, *next_world;
+    pthread_barrier_t *barrier;
 };
 
+void *world_step_thread(void *args) {
+    const int start_row        = ((struct world_step_args *)args)->start_row;
+    const int end_row          = ((struct world_step_args *)args)->end_row;
+    const int steps            = ((struct world_step_args *)args)->steps;
+    world *cur_world           = ((struct world_step_args *)args)->cur_world;
+    world *next_world          = ((struct world_step_args *)args)->next_world;
+    pthread_barrier_t *barrier = ((struct world_step_args *)args)->barrier;
 
-/* Setup pthreads according to environment variable. */
-pthread_t* init_pthreads() {
-    /* Create threads through environment variable. */
-    const char* nthreads_str = getenv("PTHREADS_NUM_THREADS");
-
-    /* Default to 2 threads if no variable was set. */
-    if (nthreads_str != NULL) {
-        NTHREADS = atoi(nthreads_str);
-#ifdef DEBUG_PTHREADS
-        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS set to %d\n", NTHREADS);
-#endif
-    } else {
-#ifdef DEBUG_PTHREADS
-        fprintf(stderr, "[PTHREADS]\tPTHREADS_NUM_THREADS not set, defaulting to %d\n", NTHREADS);
-#endif
-    }
-
-    pthread_t* threads = malloc(sizeof(pthread_t) * (NTHREADS - 1));
-    return threads;
-}
-
-/* Join and destroy all threads. */
-void close_pthreads(pthread_t* threads) {
-#ifdef DEBUG_PTHREADS
-    fprintf(stderr, "\n[PTHREADS]\tJoining threads\n");
-#endif
-
-    /* Join the threads. */
-    for (int t = 0; t < NTHREADS - 1; ++t) {
-        pthread_join(threads[t], NULL);
-    }
-
-#ifdef DEBUG_PTHREADS
-    fprintf(stderr, "[PTHREADS]\tFreeing memory\n\n");
-#endif
-
-    /* Free the threads. */
-    free(threads);
-}
-
-/* Returns the minimum of x and y without branching. */
-int min(int x, int y) {
-    return y ^ ((x ^ y) & -(x < y));
-}
-
-/* Called by worker thread to help main thread update the world. */
-void *worker_thread(void *args) {
-    /* Unpack variables from arguments. */
-    int start_row = ((struct args *)args)->start_row;
-    int end_row = ((struct args *)args)->end_row;
-    int steps = ((struct args *)args)->steps;
-    world *cur_world = ((struct args *)args)->cur_world;
-    world *next_world = ((struct args *)args)->next_world;
-    pthread_barrier_t *step_barrier = ((struct args *)args)->step_barrier;
-
-    world *tmp_world;
-
-    /* Run time steps. */
-    for (int n = 0; n < steps; n++) {
-        /* Update portion of the world. */
-        world_timestep(cur_world, next_world, start_row, end_row);
-
-        /* Wait for all threads to finish their work. */
-        pthread_barrier_wait(step_barrier);
-
-        /* Swap old and new worlds. */
-        tmp_world = cur_world;
-        cur_world = next_world;
-        next_world = tmp_world;
-    }
-
-    return NULL;
-}
-
-/* Called by the main thread to update the world. */
-void main_thread(world *cur_world, world *next_world,
-                 pthread_barrier_t* step_barrier, options opts, FILE *output_fp,
-                 int end_row) {
-    /* Declare timing variables. */
+#ifdef TIMED
     struct timeval tv;
-    double time_start, time_end, total;
-    double wrap = 0.0;
-    double step = 0.0;
-    double swap = 0.0;
-    double gif  = 0.0;
+    double time_start, time_end;
+    double *elapsed_time = malloc(sizeof(double));  // Free in main!
+    *elapsed_time = 0;
+#endif
 
+    /* Time steps... */
     world *tmp_world;
-
-    /* Run time steps. */
-    for (int n = 0; n < opts.steps; n++) {
-        /* Update edges of the world. */
+    for(int n = 0; n < steps; n++) {
+#ifdef TIMED
         time_start = time_secs(tv);
-        world_border_timestep(cur_world, next_world);
+#endif
+        world_timestep(cur_world, next_world, start_row, end_row);
+#ifdef TIMED
         time_end = time_secs(tv);
-        wrap += time_end - time_start;
-
-        /* Update rest of the world. */
-        time_start = time_secs(tv);
-        world_timestep(cur_world, next_world, 1, end_row);
-        time_end = time_secs(tv);
-        step += time_end - time_start;
-
-        /* Wait for all threads to finish their work. */
-        pthread_barrier_wait(step_barrier);
+        *elapsed_time += time_end - time_start;
+#endif
 
         /* Swap old and new worlds. */
-        time_start = time_secs(tv);
         tmp_world = cur_world;
         cur_world = next_world;
         next_world = tmp_world;
-        time_end = time_secs(tv);
-        swap += time_end - time_start;
 
-        /* Time GIF output. */
-        time_start = time_secs(tv);
-
-        if (opts.use_output != 0) {
-            write_gif_frame(cur_world->width, cur_world->height,
-                            cur_world->cells[0], output_fp);
-        }
-
-        time_end = time_secs(tv);
-        gif += time_end - time_start;
-
-        /* Print world if verbose option is set. */
-        if (opts.verbose != 0) {
-            printf("World contains %d live cells after time step %d:\n\n",
-                   world_count(cur_world), n);
-            world_print(cur_world);
-        }
+        pthread_barrier_wait(barrier);
     }
 
-    /* Print timing data */
-    total = wrap + step + swap + gif;
-    fprintf(stderr, "Total time spent in each part:\n");
-    fprintf(stderr, "  wrap : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
-    fprintf(stderr, "  step : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
-    fprintf(stderr, "  swap : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
-    fprintf(stderr, "  gif  : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
-    fprintf(stderr, "  -----------------------------------\n");
-    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
-
-    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+#ifdef TIMED
+    pthread_exit(elapsed_time);
+#else
+    pthread_exit(NULL);
+#endif
 }
 
 int main(int argc, char *argv[]) {
+#ifdef TIMED
+    struct timeval tv;
+    double time_start, time_end;
+    double total, init, wrap = 0, step = 0, swap = 0, gif = 0, final;
+
+    time_start = time_secs(tv);  // Initialization
+#endif
+
     FILE *input_fp = NULL, *output_fp = NULL;
 
     world worlds[2];
-    world *cur_world, *next_world;
+    world *cur_world, *next_world, *tmp_world;
 
     options opts;
     parse_opts(argc, argv, &opts);
+
+    pthread_t *thread = malloc(opts.threads * sizeof(pthread_t));
+    struct world_step_args *thread_args = malloc(opts.threads * sizeof(struct world_step_args));
+    pthread_barrier_t barrier;
 
     /* Open the input file. */
     if (opts.use_input) {
@@ -217,6 +122,24 @@ int main(int argc, char *argv[]) {
         world_init_random(cur_world, opts.seed);
     }
 
+    /* Setup the threads */
+    pthread_barrier_init(&barrier, NULL, opts.threads + 1);
+    int rows_per_thread = (opts.height - 2) / opts.threads + ((opts.height - 2) % opts.threads > 0);
+    for (int i = 0; i < opts.threads; i++) {
+        if (i == 0) {
+            thread_args[i].start_row = 1;
+        } else {
+            thread_args[i].start_row = thread_args[i-1].end_row;
+        }
+        thread_args[i].end_row    = MIN(thread_args[i].start_row + rows_per_thread, opts.height - 1);
+        thread_args[i].steps      = opts.steps;
+        thread_args[i].cur_world  = cur_world;
+        thread_args[i].next_world = next_world;
+        thread_args[i].barrier    = &barrier;
+
+        pthread_create(&thread[i], NULL, world_step_thread, &thread_args[i]);
+    }
+
     /* Print the initial world state */
     if (opts.verbose != 0) {
         printf("\ninitial world:\n\n");
@@ -228,61 +151,97 @@ int main(int argc, char *argv[]) {
         write_gif_header(cur_world->width, cur_world->height, output_fp);
     }
 
-    /* Setup pthreads memory. */
-    pthread_t* threads = init_pthreads();
+#ifdef TIMED
+    time_end = time_secs(tv);
+    init = time_end - time_start;
+#endif
 
-    /* Create barrier for lock-step synchronization of threads. */
-    pthread_barrier_t step_barrier;
+    /* Time steps... */
+    for (int n = 0; n < opts.steps; n++) {
+#ifdef TIMED
+        time_start = time_secs(tv);
+#endif
+        world_border_timestep(cur_world, next_world);
+#ifdef TIMED
+        time_end = time_secs(tv);
+        wrap += time_end - time_start;
+#endif
 
-    if (pthread_barrier_init(&step_barrier, NULL, NTHREADS)) {
-        fprintf(stderr, "Failed to create step_barrier..");
-        exit(1);
-    }
+        /* Wait for threads to catch up! */
+        pthread_barrier_wait(&barrier);
 
-    /* Setup args for each thread and the main thread. */
-    struct args args[NTHREADS - 1];
+        /* Swap old and new worlds. */
+#ifdef TIMED
+        time_start = time_secs(tv);
+#endif
+        tmp_world = cur_world;
+        cur_world = next_world;
+        next_world = tmp_world;
+#ifdef TIMED
+        time_end = time_secs(tv);
+        swap += time_end - time_start;
 
-    /* World rows are divided equally, meaning some threads have one more. */
-    int inner_height = opts.height - 2;
-    int extra_rows = inner_height % NTHREADS;
+        time_start = time_secs(tv);
+#endif
 
-    for (int t = 0; t < NTHREADS - 1; ++t) {
-        /* Compute start and end row that will be processed by this thread.
-         * The first n rows are reserved for the main thread.
-         */
-        args[t].start_row = 1 + (t + 1) * inner_height / NTHREADS + min(t + 1, extra_rows);
-        args[t].end_row = args[t].start_row + inner_height / NTHREADS;
-
-        /* Only process 1 extra row if needed. */
-        if (t + 1 < extra_rows)
-            args[t].end_row += 1;
-
-        args[t].steps = opts.steps;
-        args[t].cur_world = cur_world;
-        args[t].next_world = next_world;
-        args[t].step_barrier = &step_barrier;
-    }
-
-    /* Spawn worker threads to work. */
-    for (int t = 0; t < NTHREADS - 1; t++) {
-        if (pthread_create(&threads[t], NULL, worker_thread, &args[t])) {
-            fprintf(stderr, "Failed to create thread %d. Exiting..", t);
-            exit(1);
+        if (opts.verbose != 0) {
+            printf("World contains %d live cells after time step %d:\n\n", world_count(cur_world), n);
+            world_print(cur_world);
         }
+
+        if (opts.use_output != 0) {
+            write_gif_frame(cur_world->width, cur_world->height, cur_world->cells[0], output_fp);
+        }
+#ifdef TIMED
+        time_end = time_secs(tv);
+        gif += time_end - time_start;
+#endif
     }
 
-    /* Main thread also processes the first n rows. */
-    int end_row = 1 + inner_height / NTHREADS + min(1, extra_rows);
-    main_thread(cur_world, next_world, &step_barrier, opts, output_fp, end_row);
-
-    /* Join and destroy threads after work is done. */
-    close_pthreads(threads);
+#ifdef TIMED
+    time_start = time_secs(tv);
+#endif
+    /* Stop the threads */
+    for (int i = 0; i < opts.threads; i++) {
+#ifdef TIMED
+        double *thread_time = NULL;
+        pthread_join(thread[i], (void **)&thread_time);
+        step = MAX(step, *thread_time);
+        free(thread_time);  // Allocated in thread that no longer exists!
+#else
+        pthread_join(thread[i], NULL);
+#endif
+    }
+    free(thread);
+    free(thread_args);
 
     /* Close the gif file */
     if (opts.use_output != 0) {
         write_gif_trailer(output_fp);
         fclose(output_fp);
     }
+
+    free_2d_int_array(cur_world->cells);
+    free_2d_int_array(next_world->cells);
+
+#ifdef TIMED
+    time_end = time_secs(tv);
+    final = time_end - time_start;
+
+    /* Print timing data */
+    total = init + wrap + step + swap + gif + final;
+    fprintf(stderr, "Total time spent in each part:\n");
+    fprintf(stderr, "  init  : %7.3f seconds (%6.2f%%)\n", init, init/total*100);
+    fprintf(stderr, "  wrap  : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
+    fprintf(stderr, "  step  : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
+    fprintf(stderr, "  swap  : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
+    fprintf(stderr, "  gif   : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
+    fprintf(stderr, "  final : %7.3f seconds (%6.2f%%)\n", final, final/total*100);
+    fprintf(stderr, "  -----------------------------------\n");
+    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
+
+    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+#endif
 
     return 0;
 }

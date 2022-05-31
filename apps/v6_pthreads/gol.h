@@ -2,7 +2,6 @@
 #define GOL_H
 
 #include <inttypes.h>
-#include "pthread.h"
 
 typedef uint8_t pixel_t;
 

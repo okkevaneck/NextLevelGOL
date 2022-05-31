@@ -1,9 +1,13 @@
 CC      = gcc
-FLAGS   = -Wall -O3 -g -std=gnu99 -lpthread
+FLAGS   = -Wall -O3 -g -std=gnu99 -pthread
 
 TARGET  = gol
 SRC     = $(wildcard *.c)
 OBJ     = $(patsubst %.c,%.o,$(SRC))
+
+ifndef TIMELESS
+FLAGS  += -DTIMED
+endif
 
 .PHONY: all
 all: $(TARGET)
