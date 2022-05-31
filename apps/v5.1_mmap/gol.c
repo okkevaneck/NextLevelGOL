@@ -1,1 +1,1 @@
-../v5_openmp/gol.c
+../v5.0_openmp/gol.c

@@ -5,6 +5,10 @@ TARGET  = gol
 SRC     = $(wildcard *.c)
 OBJ     = $(patsubst %.c,%.o,$(SRC))
 
+ifndef TIMELESS
+FLAGS  += -DTIMED
+endif
+
 .PHONY: all
 all: $(TARGET)
 

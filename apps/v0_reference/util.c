@@ -32,6 +32,11 @@ int **alloc_2d_int_array(int nrows, int ncolumns) {
     return array;
 }
 
+void free_2d_int_array(int **array) {
+    free(array[0]);
+    free(array);
+}
+
 void world_load(world *world, FILE* world_fp) {
     int **cells = world->cells;
     int i, j, k;
