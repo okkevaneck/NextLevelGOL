@@ -2,7 +2,7 @@
 
 # Executes the profiler for a single version, given as first argument.
 run_profiler() {
-    echo -en "\nRunning tests for ${1:5:-1}.."
+    echo -e "\nRunning tests for ${1:5:-1}.."
 
     # Compile the to be tested code.
     cd "$1" || exit 4
@@ -12,6 +12,8 @@ run_profiler() {
 
     # Perform 5 tests for each version.
     for t in {1..5}; do
+        echo -en "\tExecuting run $t.."
+
         # Remove old result files, if there are any. Then run the code and store
         # output in results folder.
         if [ "$3" = "das" ]; then
@@ -21,9 +23,9 @@ run_profiler() {
             rm -f profiler.gif
             "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}_t$t.out" > /dev/null
         fi
-    done
 
-    echo -e "\tDone."
+        echo -e "\tDone."
+    done
 }
 
 # Main entry point of the script.
