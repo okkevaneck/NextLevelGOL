@@ -1,0 +1,12 @@
+Warning: Permanently added 'node056,10.141.0.56' (ECDSA) to the list of known hosts.
+Total time spent in each part:
+  init  :   0.030 seconds (  0.38%)
+  wrap  :   0.005 seconds (  0.07%)
+  step  :   4.597 seconds ( 59.74%)
+  swap  :   0.000 seconds (  0.00%)
+  gif   :   1.976 seconds ( 25.68%)
+  final :   1.087 seconds ( 14.13%)
+  -----------------------------------
+  total:   7.694 seconds (100.00%)
+
+Throughput: 129971 pixels/second
