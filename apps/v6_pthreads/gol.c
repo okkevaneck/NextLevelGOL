@@ -104,10 +104,9 @@ void world_timestep(world *old, world *new, int start_row, int end_row) {
     pixel_t *newcells = *new->cells;
     int row, col, i, nsum;
     int width  = old->width;
-    int height = old->height;
 
     /* Update board. */
-    for (row = start_row; row <= end_row; row++) {
+    for (row = start_row; row < end_row; row++) {
         i = width * row + 1;
         for (col = 1; col < width-1; col++) {
             /* Calculate sum of local (3x3) neighborhood, excluding the middle cell. */

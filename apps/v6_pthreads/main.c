@@ -12,7 +12,7 @@
 #define DEBUG_PTHREADS
 
 /* NTHREADS defines the number of threads, including the main thread. */
-int NTHREADS = 1;
+int NTHREADS = 2;
 
 struct args {
     int id;
@@ -70,11 +70,6 @@ int min(int x, int y) {
     return y ^ ((x ^ y) & -(x < y));
 }
 
-/* Returns the maximum of x and y without branching. */
-int max(int x, int y) {
-    return x ^ ((x ^ y) & -(x < y));
-}
-
 /* Called by worker thread to help main thread update the world. */
 void *worker_thread(void *args) {
     /* Unpack variables from arguments. */
@@ -90,7 +85,7 @@ void *worker_thread(void *args) {
     /* Run time steps. */
     for (int n = 0; n < steps; n++) {
         /* Update portion of the world. */
-//        world_timestep(cur_world, next_world, start_row, end_row);
+        world_timestep(cur_world, next_world, start_row, end_row);
 
         /* Wait for all threads to finish their work. */
         pthread_barrier_wait(step_barrier);
@@ -255,8 +250,12 @@ int main(int argc, char *argv[]) {
         /* Compute start and end row that will be processed by this thread.
          * The first n rows are reserved for the main thread.
          */
-        args[t].start_row = (t + 1) * inner_height / NTHREADS + min(t + 1, extra_rows);
-        args[t].end_row = args[t].start_row + inner_height / NTHREADS + max(extra_rows - t + 1, 0);
+        args[t].start_row = 1 + (t + 1) * inner_height / NTHREADS + min(t + 1, extra_rows);
+        args[t].end_row = args[t].start_row + inner_height / NTHREADS;
+
+        /* Only process 1 extra row if needed. */
+        if (t + 1 < extra_rows)
+            args[t].end_row += 1;
 
         args[t].steps = opts.steps;
         args[t].cur_world = cur_world;
@@ -273,7 +272,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Main thread also processes the first n rows. */
-    int end_row = inner_height / NTHREADS + min(1, extra_rows);
+    int end_row = 1 + inner_height / NTHREADS + min(1, extra_rows);
     main_thread(cur_world, next_world, &step_barrier, opts, output_fp, end_row);
 
     /* Join and destroy threads after work is done. */
