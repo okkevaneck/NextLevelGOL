@@ -130,10 +130,10 @@ int main(int argc, char *argv[]) {
 #endif
     }
 
-    /* Close the gif file */
 #ifdef TIMED
     time_start = time_secs(tv);
 #endif
+    /* Close the gif file */
     if (opts.use_output != 0) {
         write_gif_trailer(output_fp);
         fclose(output_fp);
