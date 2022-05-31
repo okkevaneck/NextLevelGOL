@@ -5,7 +5,6 @@ typedef struct {
     int width, height;
     int steps;
     int verbose;
-    int time_code;
     int seed;
     int use_input, use_output;
     char *input, *output;
