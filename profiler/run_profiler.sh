@@ -10,11 +10,14 @@ run_profiler() {
     make gol > /dev/null 2> /dev/null
     cd ../..
 
-    # Run the code and store output in results folder.
+    # Remove old result files, if there are any. Then run the code and store
+    # output in results folder.
     if [ "$3" = "das" ]; then
-        prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+        rm -f "/var/scratch/$USER/profiler.gif"
+        prun -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${1:5:-1}.out" > /dev/null
     else
-        "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${1:5:-1}.out" > /dev/null
+        rm -f profiler.gif
+        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}.out" > /dev/null
     fi
 
     echo -e "\tDone."
