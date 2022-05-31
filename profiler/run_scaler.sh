@@ -15,17 +15,22 @@ run_scaling() {
         export OMP_NUM_THREADS=$nthreads
 
         # Run the code and store output in results folder.
-        echo -en "\tThreads: $nthreads.."
+        echo -e "\tThreads: $nthreads.."
 
-        if [ "$3" = "das" ]; then
-            rm -f "/var/scratch/$USER/profiler.gif"
-            prun -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${nthreads}_threads.out" > /dev/null
-        else
-            rm -f profiler.gif
-            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${nthreads}_threads.out" > /dev/null
-        fi
+        # Perform 5 tests for each version.
+        for t in {1..5}; do
+            echo -en "\t\tExecuting run $t.."
 
-        echo -e "\tDone."
+            if [ "$3" = "das" ]; then
+                rm -f "/var/scratch/$USER/profiler.gif"
+                prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+            else
+                rm -f profiler.gif
+                "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+            fi
+
+            echo -e "\tDone."
+        done
     done
 
     # Unset the variable for future usage.
@@ -55,8 +60,26 @@ main() {
         exit 3
     fi
 
+    # When on the DAS, reserve node to perform all experiments on.
+    if [ "$2" = "das" ]; then
+        reservation=$(preserve -# 1 -t 10:00)
+        resid=${reservation:19:7}
+
+        # Sleep 3 seconds for the cluster to activate our reservation.
+        sleep 3
+        echo -e "Reserved a node with id $resid\n"
+    else
+        # Set $resid to 0 if running locally.
+        (( resid=0 ))
+    fi
+
     vdir=$(find . -type d -name "$1*")
-    run_scaling "${vdir:2}/" "$results" "$2"
+    run_scaling "${vdir:2}/" "$results" "$2" "$resid"
+
+    # When on the DAS, cancel the reservation of the node.
+    if [ "$2" = "das" ]; then
+        preserve -c "$resid"
+    fi
 }
 
 main "$@"
