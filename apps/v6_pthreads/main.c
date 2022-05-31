@@ -27,12 +27,8 @@ void *world_step_thread(void *args) {
     world *next_world          = ((struct world_step_args *)args)->next_world;
     pthread_barrier_t *barrier = ((struct world_step_args *)args)->barrier;
 
-    world *tmp_world;
-
-    /* Wait for initialization */
-    pthread_barrier_wait(barrier);
-
     /* Time steps... */
+    world *tmp_world;
     for(int n = 0; n < steps; n++) {
         world_timestep(cur_world, next_world, start_row, end_row);
 
@@ -64,9 +60,9 @@ int main(int argc, char *argv[]) {
     options opts;
     parse_opts(argc, argv, &opts);
 
-    pthread_t thread;
+    pthread_t *thread = malloc(opts.threads * sizeof(pthread_t));
+    struct world_step_args *thread_args = malloc(opts.threads * sizeof(struct world_step_args));
     pthread_barrier_t barrier;
-    struct world_step_args thread_args;
 
     /* Open the input file. */
     if (opts.use_input) {
@@ -107,15 +103,22 @@ int main(int argc, char *argv[]) {
     }
 
     /* Setup the threads */
-    thread_args.start_row  = 1;
-    thread_args.end_row    = opts.height - 1;
-    thread_args.steps      = opts.steps;
-    thread_args.cur_world  = cur_world;
-    thread_args.next_world = next_world;
-    thread_args.barrier    = &barrier;
+    pthread_barrier_init(&barrier, NULL, opts.threads + 1);
+    int rows_per_thread = (opts.height - 2) / opts.threads + ((opts.height - 2) % opts.threads > 0);
+    for (int i = 0; i < opts.threads; i++) {
+        if (i == 0) {
+            thread_args[i].start_row = 1;
+        } else {
+            thread_args[i].start_row = thread_args[i-1].end_row;
+        }
+        thread_args[i].end_row    = MIN(thread_args[i].start_row + rows_per_thread, opts.height - 1);
+        thread_args[i].steps      = opts.steps;
+        thread_args[i].cur_world  = cur_world;
+        thread_args[i].next_world = next_world;
+        thread_args[i].barrier    = &barrier;
 
-    pthread_barrier_init(&barrier, NULL, 2);
-    pthread_create(&thread, NULL, world_step_thread, &thread_args);
+        pthread_create(&thread[i], NULL, world_step_thread, &thread_args[i]);
+    }
 
     /* Print the initial world state */
     if (opts.verbose != 0) {
@@ -132,8 +135,6 @@ int main(int argc, char *argv[]) {
     time_end = time_secs(tv);
     init = time_end - time_start;
 #endif
-
-    pthread_barrier_wait(&barrier);
 
     /* Time steps... */
     for (int n = 0; n < opts.steps; n++) {
@@ -180,13 +181,22 @@ int main(int argc, char *argv[]) {
 #ifdef TIMED
     time_start = time_secs(tv);
 #endif
+    /* Stop the threads */
+    for (int i = 0; i < opts.threads; i++) {
+        pthread_join(thread[i], NULL);
+    }
+    free(thread);
+    free(thread_args);
+
     /* Close the gif file */
     if (opts.use_output != 0) {
         write_gif_trailer(output_fp);
         fclose(output_fp);
     }
+
     free_2d_int_array(cur_world->cells);
     free_2d_int_array(next_world->cells);
+
 #ifdef TIMED
     time_end = time_secs(tv);
     final = time_end - time_start;
