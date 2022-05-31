@@ -31,9 +31,7 @@ void *world_step_thread(void *args) {
 
 #ifdef TIMED
     struct timeval tv;
-    double time_start, time_end;
-    double *elapsed_time = malloc(sizeof(double));  // Free in main!
-    *elapsed_time = 0;
+    double time_start, time_end, step_time = 0;
 #endif
 
     /* Time steps... */
@@ -45,7 +43,7 @@ void *world_step_thread(void *args) {
         world_timestep(cur_world, next_world, start_row, end_row);
 #ifdef TIMED
         time_end = time_secs(tv);
-        *elapsed_time += time_end - time_start;
+        step_time += time_end - time_start;
 #endif
 
         /* Swap old and new worlds. */
@@ -57,6 +55,8 @@ void *world_step_thread(void *args) {
     }
 
 #ifdef TIMED
+    double *elapsed_time = malloc(sizeof(double));  // Free in main!
+    *elapsed_time = step_time;
     pthread_exit(elapsed_time);
 #else
     pthread_exit(NULL);
@@ -67,9 +67,10 @@ int main(int argc, char *argv[]) {
 #ifdef TIMED
     struct timeval tv;
     double time_start, time_end;
-    double total, init, wrap = 0, step = 0, swap = 0, gif = 0, final;
+    double total, actual, init, wrap = 0, step = 0, swap = 0, gif = 0, final;
 
     time_start = time_secs(tv);  // Initialization
+    actual = time_start;
 #endif
 
     FILE *input_fp = NULL, *output_fp = NULL;
@@ -167,9 +168,6 @@ int main(int argc, char *argv[]) {
         wrap += time_end - time_start;
 #endif
 
-        /* Wait for threads to catch up! */
-        pthread_barrier_wait(&barrier);
-
         /* Swap old and new worlds. */
 #ifdef TIMED
         time_start = time_secs(tv);
@@ -180,10 +178,14 @@ int main(int argc, char *argv[]) {
 #ifdef TIMED
         time_end = time_secs(tv);
         swap += time_end - time_start;
-
-        time_start = time_secs(tv);
 #endif
 
+        /* Wait for threads to catch up! */
+        pthread_barrier_wait(&barrier);
+
+#ifdef TIMED
+        time_start = time_secs(tv);
+#endif
         if (opts.verbose != 0) {
             printf("World contains %d live cells after time step %d:\n\n", world_count(cur_world), n);
             world_print(cur_world);
@@ -230,15 +232,17 @@ int main(int argc, char *argv[]) {
 
     /* Print timing data */
     total = init + wrap + step + swap + gif + final;
+    actual = time_end - actual;
     fprintf(stderr, "Total time spent in each part:\n");
-    fprintf(stderr, "  init  : %7.3f seconds (%6.2f%%)\n", init, init/total*100);
-    fprintf(stderr, "  wrap  : %7.3f seconds (%6.2f%%)\n", wrap, wrap/total*100);
-    fprintf(stderr, "  step  : %7.3f seconds (%6.2f%%)\n", step, step/total*100);
-    fprintf(stderr, "  swap  : %7.3f seconds (%6.2f%%)\n", swap, swap/total*100);
-    fprintf(stderr, "  gif   : %7.3f seconds (%6.2f%%)\n", gif, gif/total*100);
-    fprintf(stderr, "  final : %7.3f seconds (%6.2f%%)\n", final, final/total*100);
+    fprintf(stderr, "  init  : %7.3f seconds (%6.2f%%)\n", init, init/actual*100);
+    fprintf(stderr, "  wrap  : %7.3f seconds (%6.2f%%)\n", wrap, wrap/actual*100);
+    fprintf(stderr, "  step  : %7.3f seconds (%6.2f%%) (max of %d threads)\n", step, step/actual*100, opts.threads);
+    fprintf(stderr, "  swap  : %7.3f seconds (%6.2f%%)\n", swap, swap/actual*100);
+    fprintf(stderr, "  gif   : %7.3f seconds (%6.2f%%)\n", gif, gif/actual*100);
+    fprintf(stderr, "  final : %7.3f seconds (%6.2f%%)\n", final, final/actual*100);
     fprintf(stderr, "  -----------------------------------\n");
-    fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
+    fprintf(stderr, "  total : %7.3f seconds (%6.2f%%)\n", total, total/actual*100);
+    fprintf(stderr, "  actual: %7.3f seconds (100.00%%)\n\n", actual);
 
     fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
 #endif
