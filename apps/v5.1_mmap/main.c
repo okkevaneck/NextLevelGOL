@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-/* Open the output file. */
+    /* Open the output file. */
     if (opts.use_output) {
         output_fd = open(opts.output, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         if (output_fd < 0) {
@@ -99,9 +99,8 @@ int main(int argc, char *argv[]) {
 #endif
 
     /* Time steps... */
+    world *tmp_world;
     for (int n = 0; n < opts.steps; n++) {
-        world *tmp_world;
-
 #ifdef TIMED
         time_start = time_secs(tv);
 #endif

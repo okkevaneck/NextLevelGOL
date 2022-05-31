@@ -87,9 +87,7 @@ size_t write_gif_frame(uint16_t width, uint16_t height, uint8_t *image, uint8_t 
 
     /* Local Color Table: Not needed, we only use the global color table! */
 
-    /* Image Data: Without LZW compression!
-     * TODO: Compress 4 pixels into one byte.
-     * TODO: Actually use LZW compression. */
+    /* Image Data: Without LZW compression! */
     buffer[offset++] = 0x07;  // 7-bit symbols (8-bit codes)
     size_t remaining = width * height;
     uint8_t size = 0;

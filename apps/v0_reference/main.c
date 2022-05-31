@@ -86,9 +86,8 @@ int main(int argc, char *argv[]) {
 #endif
 
     /* Time steps... */
+    world *tmp_world;
     for (int n = 0; n < opts.steps; n++) {
-        world *tmp_world;
-
 #ifdef TIMED
         time_start = time_secs(tv);
 #endif
