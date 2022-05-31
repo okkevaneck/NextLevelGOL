@@ -18,9 +18,11 @@ run_scaling() {
         echo -en "\tThreads: $nthreads.."
 
         if [ "$3" = "das" ]; then
-            prun -np 1 "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
+            rm -f "/var/scratch/$USER/profiler.gif"
+            prun -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${nthreads}_threads.out" > /dev/null
         else
-            "./$1gol" 1000 1000 1000 -t -s 42 -o /dev/null 2> "$2/${nthreads}_threads.out" > /dev/null
+            rm -f profiler.gif
+            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${nthreads}_threads.out" > /dev/null
         fi
 
         echo -e "\tDone."
