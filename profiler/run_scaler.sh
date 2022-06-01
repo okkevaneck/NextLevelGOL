@@ -91,7 +91,7 @@ main() {
 
     # When on the DAS, reserve node to perform all experiments on.
     if [ "$2" = "das" ]; then
-        reservation=$(preserve -# 1 -t 15:00)
+        reservation=$(preserve -# 1 -t 30:00)
         resid=${reservation:19:7}
 
         # Sleep 3 seconds for the cluster to activate our reservation.
