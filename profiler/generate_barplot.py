@@ -54,6 +54,9 @@ def gen_barplot():
     cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
+    with open("results/profiler_all_means.csv", "w") as fp:
+        df_mean.to_csv(fp)
+
     df_mean_norm = df_mean.copy()
     df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
 
