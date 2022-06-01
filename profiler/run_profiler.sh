@@ -20,6 +20,8 @@ run_profiler() {
     fi
 
     # Perform one dry run.
+    echo -en "\tExecuting dry run.."
+
     if [ "$3" = "das" ]; then
         rm -f "/var/scratch/$USER/profiler.gif"
         prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs &> /dev/null
@@ -27,6 +29,8 @@ run_profiler() {
         rm -f profiler.gif
         "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
     fi
+
+    echo -e "\tDone."
 
     # Perform 5 tests for each version.
     for t in {1..5}; do

@@ -20,6 +20,8 @@ run_scaling() {
     fi
 
     # Perform a dry run.
+    echo -en "\tExecuting dry run.."
+
     if [ "$3" = "das" ]; then
         rm -f "/var/scratch/$USER/profiler.gif"
         prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs &> /dev/null
@@ -27,6 +29,8 @@ run_scaling() {
         rm -f profiler.gif
         "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
     fi
+
+    echo -e "\tDone."
 
     # Run the code with different number of threads through global variable.
     for nthreads in {1,2,4,8,12,15,16,17,24,32}; do

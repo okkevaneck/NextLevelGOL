@@ -27,8 +27,8 @@ def load_results():
                 rows.append({"version": v, "type": "final", "value": float(lines[6][12:17])})
 
                 # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
-                # Except for version 7.0, because it is special.
-                if v[1:4] != "7.0" and int(v[1:2]) >= 6:
+                # Including version 7.0, because it is special (and does have latency hiding without pthreads).
+                if int(v[1:2]) >= 6:
                     rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
                     rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:18])})
                 else:
@@ -43,64 +43,50 @@ def load_results():
 def gen_barplot():
     # Fetch DatFrame with measured values.
     df = load_results()
-    print(df)
 
     # Create DataFrame with mean values and normalize.
     df_mean = df.pivot_table(index="version",
                              columns="type",
                              values="value",
                              aggfunc="mean")
+
     # Order DataFrame to plot in order.
-    cols = ["init", "wrap", "step", "swap", "gif", "final", "total", "throughput"]
+    cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    print(df_mean)
     df_mean_norm = df_mean.copy()
-    df_mean_norm.iloc[:, 0:6] = df_mean_norm.iloc[:, 0:6].div(df_mean_norm.iloc[:, 0:6].sum(axis=1), axis=0)
-    print(df_mean_norm)
+    df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
 
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="version",
                             columns="type",
                             values="value",
                             aggfunc="std")
-    print(df_std)
 
     # Scale the standard deviation to be relative for the 0-1 scale.
-    # print(df_std[cols[:-2]])
-    # for i, row in enumerate(df_std[cols[:-2]].iterrows()):
-    #     print(f"{row}\n")
-    #     row /= df_mean.iloc[i]["total"]
-    #     df_std[cols[:-2]] = row
-    # print(df_std)
+    for i in range(len(df_std)):
+        df_std.iloc[i][cols[2:]] = df_std.iloc[i][cols[2:]].divide(df_mean.iloc[i]['total'])
 
     # Plot the dataframe and add yerr.
-    ax = df_mean_norm[cols[:-2]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std)
+    sns.set(style="white")
+    # df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std[cols[2:]])
+    df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std[["step", "gif", "final"]])
+
+
+# Add info to plot.
+    plt.title("Relative time spend per version", fontsize=16)
+    plt.xlabel("Versions", labelpad=0)
+    plt.ylabel("Relative time spend")
+    plt.xticks(rotation=45)
+    ax = plt.gca()
+    ax.tick_params(axis="both", which="major", pad=0)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
+
+    # Save and show plot.
+    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}.pdf")
     plt.show()
-
-    # TODO: https://stackoverflow.com/questions/70333645/how-to-annotate-bar-plots-when-adding-error-bars
-
-    #
-    # # plot the dataframe and add yerr
-    # ax = pen_mean.plot(kind='bar', stacked=True, figsize=(9, 6), rot=0, yerr=pen_std)
-
-    # # Setup stacked barchart.
-    # sns.set(style="white")
-    # df.set_index("Version").plot(kind="bar", stacked=True)
-    #
-    # # Add info to plot.
-    # plt.title("Relative time spend per version", fontsize=16)
-    # plt.xlabel("Versions", labelpad=0)
-    # plt.ylabel("Relative time spend")
-    # plt.xticks(rotation=45)
-    # ax = plt.gca()
-    # ax.tick_params(axis="both", which="major", pad=0)
-    # ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-    # plt.tight_layout()
-    #
-    # # Save and show plot.
-    # plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}")
-    # plt.show()
 
 
 if __name__ == "__main__":
