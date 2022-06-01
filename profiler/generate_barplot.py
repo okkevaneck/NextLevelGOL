@@ -86,7 +86,7 @@ def gen_barplot():
     plt.tight_layout()
 
     # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}.pdf")
+    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}.png")
     plt.show()
 
 
