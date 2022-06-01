@@ -10,6 +10,24 @@ run_profiler() {
     make gol > /dev/null 2> /dev/null
     cd ../..
 
+    # Include number of threads to arguments if main version is 6 or higher.
+    (( mainVersion = ${1:6:1} ))
+
+    if [ "$mainVersion" -ge 6 ]; then
+        threadArgs="-t 8"
+    else
+        threadArgs=""
+    fi
+
+    # Perform one dry run.
+    if [ "$3" = "das" ]; then
+        rm -f "/var/scratch/$USER/profiler.gif"
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" > /dev/null
+    else
+        rm -f profiler.gif
+        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif "$threadArgs" > /dev/null
+    fi
+
     # Perform 5 tests for each version.
     for t in {1..5}; do
         echo -en "\tExecuting run $t.."
@@ -18,10 +36,10 @@ run_profiler() {
         # output in results folder.
         if [ "$3" = "das" ]; then
             rm -f "/var/scratch/$USER/profiler.gif"
-            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" 2> "$2/${1:5:-1}_t$t.out" > /dev/null
         else
             rm -f profiler.gif
-            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}_t$t.out" "$threadArgs" > /dev/null
         fi
 
         echo -e "\tDone."
