@@ -54,9 +54,7 @@ def gen_barplot():
     cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    with open("results/profiler_all_means.csv", "w") as fp:
-        df_mean.to_csv(fp)
-
+    # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()
     df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
 
@@ -70,10 +68,10 @@ def gen_barplot():
     for i in range(len(df_std)):
         df_std.iloc[i][cols[2:]] = df_std.iloc[i][cols[2:]].divide(df_mean.iloc[i]['total'])
 
-    # Plot the dataframe and add yerr.
+    # Plot the dataframe and add error bars.
     sns.set(style="white")
-    # df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std[cols[2:]])
-    df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std[["step", "gif", "final"]])
+    df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
+                                yerr=df_std[["step", "gif", "final"]])
 
 
 # Add info to plot.
