@@ -22,6 +22,7 @@ run_profiler() {
     # Perform one dry run.
     if [ "$3" = "das" ]; then
         rm -f "/var/scratch/$USER/profiler.gif"
+        echo -e "\n\nprun -reserve $4 -np 1 ./$1gol 1000 1000 1000 -s 42 -o /var/scratch/$USER/profiler.gif $threadArgs > /dev/null"
         prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" > /dev/null
     else
         rm -f profiler.gif
@@ -36,10 +37,11 @@ run_profiler() {
         # output in results folder.
         if [ "$3" = "das" ]; then
             rm -f "/var/scratch/$USER/profiler.gif"
+            echo -e "\n\nprun -reserve $4 -np 1 ./$1gol 1000 1000 1000 -s 42 -o /var/scratch/$USER/profiler.gif $threadArgs > /dev/null"
             prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" 2> "$2/${1:5:-1}_t$t.out" > /dev/null
         else
             rm -f profiler.gif
-            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}_t$t.out" "$threadArgs" > /dev/null
+            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif "$threadArgs" 2> "$2/${1:5:-1}_t$t.out" > /dev/null
         fi
 
         echo -e "\tDone."

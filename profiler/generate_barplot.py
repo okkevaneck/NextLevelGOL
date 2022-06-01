@@ -61,11 +61,11 @@ def gen_barplot():
 
     # Scale the standard deviation to be relative for the 0-1 scale.
     # print(df_std[cols[:-2]])
-    for i, row in enumerate(df_std[cols[:-2]].iterrows()):
-        print(f"{row}\n")
-        row /= df_mean.iloc[i]["total"]
-        df_std[cols[:-2]] = row
-    print(df_std)
+    # for i, row in enumerate(df_std[cols[:-2]].iterrows()):
+    #     print(f"{row}\n")
+    #     row /= df_mean.iloc[i]["total"]
+    #     df_std[cols[:-2]] = row
+    # print(df_std)
 
     # Plot the dataframe and add yerr.
     ax = df_mean_norm[cols[:-2]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0, yerr=df_std)
