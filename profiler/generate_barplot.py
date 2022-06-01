@@ -58,6 +58,9 @@ def gen_barplot():
     df_mean_norm = df_mean.copy()
     df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
 
+    with open("results/profiler_all_fractions.csv", "w") as fp:
+        df_mean_norm.to_csv(fp)
+
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="version",
                             columns="type",
