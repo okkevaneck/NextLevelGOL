@@ -10,10 +10,10 @@ run_profiler() {
     make gol > /dev/null 2> /dev/null
     cd ../..
 
-    # Include number of threads to arguments if main version is 6 or higher.
+    # Include number of threads to arguments if main version is 6 or higher, but not 7.0.
     (( mainVersion = ${1:6:1} ))
 
-    if [ "$mainVersion" -ge 6 ]; then
+    if [ "${1:6:3}" != "7.0" ] && [ "$mainVersion" -ge 6 ]; then
         threadArgs="-t 8"
     else
         threadArgs=""
@@ -22,10 +22,10 @@ run_profiler() {
     # Perform one dry run.
     if [ "$3" = "das" ]; then
         rm -f "/var/scratch/$USER/profiler.gif"
-        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs > /dev/null
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs &> /dev/null
     else
         rm -f profiler.gif
-        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs > /dev/null
+        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
     fi
 
     # Perform 5 tests for each version.
@@ -68,7 +68,7 @@ main() {
 
     # When on the DAS, reserve node to perform all experiments on.
     if [ "$2" = "das" ]; then
-        reservation=$(preserve -# 1 -t 10:00)
+        reservation=$(preserve -# 1 -t 15:00)
         resid=${reservation:19:7}
 
         # Sleep 3 seconds for the cluster to activate our reservation.

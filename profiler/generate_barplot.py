@@ -25,8 +25,15 @@ def load_results():
                 rows.append({"version": v, "type": "swap", "value": float(lines[4][12:17])})
                 rows.append({"version": v, "type": "gif", "value": float(lines[5][12:17])})
                 rows.append({"version": v, "type": "final", "value": float(lines[6][12:17])})
-                rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
-                rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:18])})
+
+                # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
+                # Except for version 7.0, because it is special.
+                if v[1:4] != "7.0" and int(v[1:2]) >= 6:
+                    rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:18])})
+                else:
+                    rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:18])})
 
     values = pd.DataFrame(rows)
 

@@ -22,10 +22,10 @@ run_scaling() {
     # Perform a dry run.
     if [ "$3" = "das" ]; then
         rm -f "/var/scratch/$USER/profiler.gif"
-        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" > /dev/null
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs &> /dev/null
     else
         rm -f profiler.gif
-        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif "$threadArgs" > /dev/null
+        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
     fi
 
     # Run the code with different number of threads through global variable.
@@ -48,10 +48,10 @@ run_scaling() {
 
             if [ "$3" = "das" ]; then
                 rm -f "/var/scratch/$USER/profiler.gif"
-                prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" "$threadArgs" 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+                prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
             else
                 rm -f profiler.gif
-                "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif "$threadArgs" 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+                "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
             fi
 
             echo -e "\tDone."
@@ -87,7 +87,7 @@ main() {
 
     # When on the DAS, reserve node to perform all experiments on.
     if [ "$2" = "das" ]; then
-        reservation=$(preserve -# 1 -t 10:00)
+        reservation=$(preserve -# 1 -t 15:00)
         resid=${reservation:19:7}
 
         # Sleep 3 seconds for the cluster to activate our reservation.
