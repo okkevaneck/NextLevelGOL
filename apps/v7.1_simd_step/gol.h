@@ -1,0 +1,1 @@
+../v6.0_pthreads/gol.h
