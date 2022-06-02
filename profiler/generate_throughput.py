@@ -81,7 +81,7 @@ def gen_throughput():
 
     # Save and show plot.
     plt.savefig(f"figures/{results_folder}_throughput_{'-'.join(versions)}.png")
-    # plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":

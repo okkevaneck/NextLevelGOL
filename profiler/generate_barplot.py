@@ -86,7 +86,7 @@ def gen_barplot():
 
     # Save and show plot.
     plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}.png")
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
