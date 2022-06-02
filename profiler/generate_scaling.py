@@ -27,21 +27,21 @@ def load_results():
                 if len(lines) == 0:
                     continue
 
-                rows.append({"nthreads": t, "type": "init", "value": float(lines[1][12:17])})
-                rows.append({"nthreads": t, "type": "wrap", "value": float(lines[2][12:17])})
-                rows.append({"nthreads": t, "type": "step", "value": float(lines[3][12:17])})
-                rows.append({"nthreads": t, "type": "swap", "value": float(lines[4][12:17])})
-                rows.append({"nthreads": t, "type": "gif", "value": float(lines[5][12:17])})
-                rows.append({"nthreads": t, "type": "final", "value": float(lines[6][12:17])})
+                rows.append({"nthreads": int(t), "type": "init", "value": float(lines[1][12:17])})
+                rows.append({"nthreads": int(t), "type": "wrap", "value": float(lines[2][12:17])})
+                rows.append({"nthreads": int(t), "type": "step", "value": float(lines[3][12:17])})
+                rows.append({"nthreads": int(t), "type": "swap", "value": float(lines[4][12:17])})
+                rows.append({"nthreads": int(t), "type": "gif", "value": float(lines[5][12:17])})
+                rows.append({"nthreads": int(t), "type": "final", "value": float(lines[6][12:17])})
 
                 # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
                 if int(v[0]) >= 6:
-                    rows.append({"nthreads": t, "type": "total", "value": float(lines[9][11:16])})
-                    rows.append({"nthreads": t, "type": "throughput", "value": float(lines[11][12:18])})
+                    rows.append({"nthreads": int(t), "type": "total", "value": float(lines[9][11:16])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[11][12:18])})
                 else:
-                    rows.append({"nthreads": t, "type": "total", "value": float(lines[8][11:16])})
-                    rows.append({"nthreads": t, "type": "throughput", "value": float(lines[10][12:18])})
+                    rows.append({"nthreads": int(t), "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[10][12:18])})
 
     values = pd.DataFrame(rows)
 
@@ -63,30 +63,16 @@ def gen_scaling_plot():
     cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    print(df_mean)
+    # Create DataFrame for the error bars (std).
+    df_std = df.pivot_table(index="nthreads",
+                            columns="type",
+                            values="value",
+                            aggfunc="std")
 
-    # # Order DataFrame to plot in order.
-    # cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
-    # df_mean = df_mean[cols]
-
-    # Create DataFrame with normalized performance numbers.
-    # df = pd.DataFrame({"nthreads": threads,
-    #                    "init": df_mean["init"],
-    #                    "wrap": df_mean["wrap"],
-    #                    "step": df_mean["step"],
-    #                    "swap": df_mean["swap"],
-    #                    "gif":  df_mean["gif"],
-    #                    "final":  df_mean["final"]})
-
-    # Setup stacked barchart.
-    # sns.set(style="white")
-    # df_mean.set_index("nthreads").plot(kind="bar", stacked=True)
-    #
-    # sns.set(style="white")
-    # ax = sns.barplot(x="nthreads", y="total", data=df_mean, color="#4878D0")
-
+    # Plot means.
     sns.set(style="white")
-    df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0)
+    df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
+                           yerr=df_std[["step", "gif", "final"]])
 
     # Add info to plot.
     plt.title("Time spend per number of threads", fontsize=16)
