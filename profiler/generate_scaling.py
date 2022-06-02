@@ -10,38 +10,14 @@ import glob
 
 
 def load_results():
-#     values = {
-#         "inits": [],
-#         "wraps": [],
-#         "steps": [],
-#         "swaps": [],
-#         "gifs": [],
-#         "finals": [],
-#         "throughput": [],
-#     }
-#
-#     # Load results in variables.
-# for t in threads:
-#     fs = glob.glob(f"results/{results_folder}/{t}_*")
-#     with open(fs[0], "r") as fp:
-#         lines = fp.readlines()
-#
-#         values["inits"].append(float(lines[1][11:16]))
-#         values["wraps"].append(float(lines[2][11:16]))
-#         values["steps"].append(float(lines[3][11:16]))
-#         values["swaps"].append(float(lines[4][11:16]))
-#         values["gifs"].append(float(lines[5][11:16]))
-#         values["finals"].append(float(lines[6][11:16]))
-#         values["throughput"].append(float(lines[10][12:18]))
-#
-# return values
-#
-#
     rows = []
+
+    print(threads)
 
     # Load results in variables.
     for t in threads:
         fs = glob.glob(f"results/{results_folder}/{t}_*")
+        v = results_folder[9:12]
 
         for run_fp in fs:
             with open(run_fp, "r") as fp:
@@ -60,7 +36,7 @@ def load_results():
 
                 # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
-                if int(v[1:2]) >= 6:
+                if int(v[0]) >= 6:
                     rows.append({"nthreads": t, "type": "total", "value": float(lines[9][11:16])})
                     rows.append({"nthreads": t, "type": "throughput", "value": float(lines[11][12:18])})
                 else:
@@ -76,28 +52,41 @@ def gen_scaling_plot():
     # Fetch DatFrame with measured values.
     df = load_results()
 
+    print(df)
+
     # Create DataFrame with mean values and normalize.
-    df_mean = df.pivot_table(index="version",
+    df_mean = df.pivot_table(index="nthreads",
                              columns="type",
                              values="value",
                              aggfunc="mean")
+
+    cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
+    df_mean = df_mean[cols]
+
+    print(df_mean)
 
     # # Order DataFrame to plot in order.
     # cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
     # df_mean = df_mean[cols]
 
     # Create DataFrame with normalized performance numbers.
-    df = pd.DataFrame({"nthreads": threads,
-                       "init": df_mean["init"],
-                       "wrap": df_mean["wraps"],
-                       "step": df_mean["steps"],
-                       "swap": df_mean["swaps"],
-                       "gif":  df_mean["gifs"],
-                       "final":  df_mean["final"]})
+    # df = pd.DataFrame({"nthreads": threads,
+    #                    "init": df_mean["init"],
+    #                    "wrap": df_mean["wrap"],
+    #                    "step": df_mean["step"],
+    #                    "swap": df_mean["swap"],
+    #                    "gif":  df_mean["gif"],
+    #                    "final":  df_mean["final"]})
 
     # Setup stacked barchart.
+    # sns.set(style="white")
+    # df_mean.set_index("nthreads").plot(kind="bar", stacked=True)
+    #
+    # sns.set(style="white")
+    # ax = sns.barplot(x="nthreads", y="total", data=df_mean, color="#4878D0")
+
     sns.set(style="white")
-    df.set_index("nthreads").plot(kind="bar", stacked=True)
+    df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0)
 
     # Add info to plot.
     plt.title("Time spend per number of threads", fontsize=16)
@@ -110,7 +99,7 @@ def gen_scaling_plot():
     plt.tight_layout()
 
     # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(threads)}")
+    plt.savefig(f"figures/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 
@@ -132,5 +121,5 @@ if __name__ == "__main__":
             print(f"Results for '{t}' threads do not exist..")
             exit(1)
 
-    # # Generate normalized bar plot with the given versions.
+    # Generate normalized bar plot with the given versions.
     gen_scaling_plot()
