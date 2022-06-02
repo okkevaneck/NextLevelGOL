@@ -59,7 +59,7 @@ def gen_throughput():
 
     # Compose values per 1000.
     for rec in ax.containers[0]:
-        txt = str(round(rec.get_height(), -3))[:-5] + "K"
+        txt = str(round(rec.get_height(), -3))[:-5] + "M"
         ax.text(x=rec.get_x() + rec.get_width() / 2, y=rec.get_height()+.5,
                 s=txt, ha="center")
 
@@ -76,12 +76,12 @@ def gen_throughput():
     ylbls = ax.get_yticklabels()
     new_labels = []
     for ylbl in ylbls:
-        new_labels.append(str(round(float(ylbl.get_text()), -3))[:-5] + "K")
+        new_labels.append(str(round(float(ylbl.get_text()), -3))[:-5] + "M")
     ax.set_yticklabels(new_labels)
 
     # Save and show plot.
     plt.savefig(f"figures/{results_folder}_throughput_{'-'.join(versions)}.png")
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
