@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "  total : %7.3f seconds (%6.2f%%)\n", total, total/actual*100);
     fprintf(stderr, "  actual: %7.3f seconds (100.00%%)\n\n", actual);
 
-    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.steps * opts.width * opts.height / actual);
 #endif
 
     return 0;
