@@ -32,6 +32,8 @@ run_scaling() {
 
     echo -e "\tDone."
 
+    wait 1
+
     # Run the code with different number of threads through global variable.
     for nthreads in {1,2,4,8,12,15,16,17,24,32}; do
         export OMP_NUM_THREADS=$nthreads
@@ -59,6 +61,8 @@ run_scaling() {
             fi
 
             echo -e "\tDone."
+
+            wait 1
         done
     done
 
