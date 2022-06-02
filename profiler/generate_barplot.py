@@ -73,8 +73,7 @@ def gen_barplot():
     df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 yerr=df_std[["step", "gif", "final"]])
 
-
-# Add info to plot.
+    # Add info to plot.
     plt.title("Relative time spend per version", fontsize=16)
     plt.xlabel("Versions", labelpad=0)
     plt.ylabel("Relative time spend")
