@@ -1,0 +1,12 @@
+Total time spent in each part:
+  init  :   0.033 seconds (  1.17%)
+  wrap  :   0.032 seconds (  1.16%)
+  step  :   0.612 seconds ( 22.00%) (max of 15 threads)
+  swap  :   0.000 seconds (  0.00%)
+  gif   :   1.457 seconds ( 52.36%)
+  final :   1.244 seconds ( 44.71%)
+  -----------------------------------
+  total :   3.377 seconds (121.40%)
+  actual:   2.782 seconds (100.00%)
+
+Throughput: 359483875 pixels/second
