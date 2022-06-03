@@ -127,7 +127,7 @@ def gen_scaling_plot():
     plt.tight_layout()
 
     # Save and show plot.
-    # plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
+    plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 
