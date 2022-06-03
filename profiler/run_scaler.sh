@@ -35,7 +35,7 @@ run_scaling() {
     sleep 1
 
     # Run the code with different number of threads through global variable.
-    for nthreads in {1,2,4,7,8,16}; do
+    for nthreads in {1,2,4,7,8,9,16}; do
         export OMP_NUM_THREADS=$nthreads
 
         # Set number of threads for pthreads if main version is 6 or higher.
