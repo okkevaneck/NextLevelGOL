@@ -75,6 +75,9 @@ if __name__ == "__main__":
     results_folder = args[1]
     versions = args[2:]
 
+    if versions[0] == "all":
+        versions = ["v0", "v1", "v2", "v3", "v4", "v5.0", "v5.1", "v6.0", "v6.1", "v7.0", "v7.1"]
+
     # Check for existence of results folder.
     if not os.path.isdir(f"results/{results_folder}"):
         print(f"Given results folder '{results_folder}' does not exist..")

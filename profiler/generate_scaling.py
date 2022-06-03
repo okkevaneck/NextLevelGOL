@@ -112,9 +112,9 @@ def gen_scaling_plot():
 
 
     # Add info to plot.
-    plt.title("Time spend per number of threads", fontsize=16)
+    plt.title(f"Segregated execution time per number of threads for {results_folder[8:12]}", fontsize=16)
     plt.xlabel("Number of threads", labelpad=0)
-    plt.ylabel("Time spend (s)")
+    plt.ylabel("Execution time (s)")
     plt.xticks(rotation=0)
     ax = plt.gca()
     ax.tick_params(axis="both", which="major", pad=0)
@@ -127,7 +127,7 @@ def gen_scaling_plot():
     plt.tight_layout()
 
     # Save and show plot.
-    # plt.savefig(f"figures/{results_folder}_{'-'.join(threads)}.png")
+    # plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 

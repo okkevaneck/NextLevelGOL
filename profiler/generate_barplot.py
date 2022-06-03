@@ -113,9 +113,10 @@ def gen_barplot():
         ax.patches[stepIdx].set_facecolor(ax.patches[ovlpIdx].get_facecolor())
 
     # Add info to plot.
-    plt.title("Relative time spend per version", fontsize=16)
-    plt.xlabel("Versions", labelpad=0)
-    plt.ylabel("Relative time spend")
+    plt.title("Segregated execution time per version", fontsize=16)
+    plt.title("Normalized segregated execution time per version", fontsize=16)
+    plt.xlabel("Version", labelpad=0)
+    plt.ylabel("Execution time (s)")
     plt.xticks(rotation=45)
     ax = plt.gca()
     ax.tick_params(axis="both", which="major", pad=0)
@@ -128,8 +129,9 @@ def gen_barplot():
     plt.tight_layout()
 
     # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(versions)}.png")
-    # plt.show()
+    # plt.savefig(f"figures/barplot_no_error/{results_folder}_{'-'.join(versions)}.png")
+    # plt.savefig(f"figures/barplot_norm_no_error/{results_folder}_{'-'.join(versions)}.png")
+    plt.show()
 
 
 if __name__ == "__main__":
