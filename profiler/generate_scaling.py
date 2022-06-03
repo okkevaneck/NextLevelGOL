@@ -84,7 +84,7 @@ def gen_scaling_plot():
     sns.set(style="white")
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
-                                )
+                                linewidth=0)
 
     # Color hatches properly.
     mpl.rcParams["hatch.linewidth"] = 7.5

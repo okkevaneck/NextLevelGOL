@@ -14,7 +14,7 @@ run_profiler() {
     (( mainVersion = ${1:6:1} ))
 
     if [ "${1:6:3}" != "7.0" ] && [ "$mainVersion" -ge 6 ]; then
-        threadArgs="-t 8"
+        threadArgs="-t 16"
     else
         threadArgs=""
     fi
@@ -75,8 +75,8 @@ main() {
         reservation=$(preserve -# 1 -t 15:00)
         resid=${reservation:19:7}
 
-        # Sleep 5 seconds for the cluster to activate our reservation.
-        sleep 5
+        # Sleep 3 seconds for the cluster to activate our reservation.
+        sleep 3
         echo -e "Reserved a node with id $resid\n"
     else
         # Set $resid to 0 if running locally.
