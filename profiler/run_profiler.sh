@@ -75,8 +75,8 @@ main() {
         reservation=$(preserve -# 1 -t 15:00)
         resid=${reservation:19:7}
 
-        # Sleep 3 seconds for the cluster to activate our reservation.
-        sleep 3
+        # Sleep 5 seconds for the cluster to activate our reservation.
+        sleep 5
         echo -e "Reserved a node with id $resid\n"
     else
         # Set $resid to 0 if running locally.
