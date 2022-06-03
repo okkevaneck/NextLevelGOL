@@ -42,7 +42,7 @@ run_profiler() {
         # output in results folder.
         if [ "$3" = "das" ]; then
             rm -f rm -f profiler.gif
-            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o rm -f profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
             rm -f profiler.gif
         else
             rm -f profiler.gif
