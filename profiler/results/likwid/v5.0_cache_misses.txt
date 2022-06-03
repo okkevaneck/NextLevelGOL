@@ -37,3 +37,11 @@ Averages:
         1 thread: 50425307
         2 thread: 50739576
         4 thread: 51110186
+
+Diffs:
+    L2_TRANS_ALL_REQUESTS
+        1 -> 2: 9701881
+        2 -> 4: 1963958
+    L2_RQSTS_MISS
+        1 -> 2: 314269
+        2 -> 4: 370610
