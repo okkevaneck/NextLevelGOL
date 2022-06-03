@@ -17,6 +17,12 @@ def load_results():
         for run_fp in fs:
             with open(run_fp, "r") as fp:
                 lines = fp.readlines()
+
+                # Error on empty.
+                if len(lines) == 0:
+                    print(f"Detected empty results file: {run_fp}..")
+                    exit(1)
+
                 rows.append({"version": v, "type": "init", "value": float(lines[1][12:17])})
                 rows.append({"version": v, "type": "wrap", "value": float(lines[2][12:17])})
                 rows.append({"version": v, "type": "step", "value": float(lines[3][12:17])})

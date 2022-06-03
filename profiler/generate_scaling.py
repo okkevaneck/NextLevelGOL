@@ -22,7 +22,7 @@ def load_results():
             with open(run_fp, "r") as fp:
                 lines = fp.readlines()
 
-                # Skip empty.
+                # Error on empty.
                 if len(lines) == 0:
                     print(f"Detected empty results file: {run_fp}..")
                     exit(1)
