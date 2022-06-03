@@ -58,8 +58,15 @@ def gen_barplot():
     cols = ["throughput", "total", "final",  "swap", "gif", "overlap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    # Subtract overlap of step.
-    df_mean["step"] = df_mean["step"] - df_mean["overlap"]
+    # Subtract overlap of step for all rows that do not belong to v7.0.
+    # Subtract overlap of gif for the rows of version 7.0.
+    idxs = list(df_mean.index)
+
+    if "v7.0" in idxs:
+        idxs.remove("v7.0")
+        df_mean.loc[["v7.0"]]["step"] -= df_mean.loc[["v7.0"]]["overlap"]
+
+    df_mean.loc[idxs]["step"] -= df_mean.loc[idxs]["overlap"]
 
     # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()
@@ -78,7 +85,7 @@ def gen_barplot():
     # Plot the dataframe and add error bars.
     sns.set(style="white")
     ax = df_mean_norm[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
-                                     yerr=df_std[["step", "gif", "final"]],
+                                     # yerr=df_std[["step", "gif", "final"]],
                                      linewidth=0)
 
     # Color hatches properly.
