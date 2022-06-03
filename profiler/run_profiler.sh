@@ -34,6 +34,8 @@ run_profiler() {
 
     echo -e "\tDone."
 
+    sleep 1
+
     # Perform 5 tests for each version.
     for t in {1..5}; do
         echo -en "\tExecuting run $t.."
@@ -51,6 +53,8 @@ run_profiler() {
         fi
 
         echo -e "\tDone."
+
+        sleep 1
     done
 }
 
