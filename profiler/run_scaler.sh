@@ -14,7 +14,7 @@ run_scaling() {
     (( mainVersion = ${1:6:1} ))
 
     if [ "$mainVersion" -ge 6 ]; then
-        threadArgs="-t 32"
+        threadArgs="-t 16"
     else
         threadArgs=""
     fi
@@ -35,12 +35,12 @@ run_scaling() {
     sleep 1
 
     # Run the code with different number of threads through global variable.
-    for nthreads in {1,2,4,8,12,15,16,17,24,32}; do
+    for nthreads in {1,2,4,7,8,16}; do
         export OMP_NUM_THREADS=$nthreads
 
         # Set number of threads for pthreads if main version is 6 or higher.
         if [ "$mainVersion" -ge 6 ]; then
-            threadArgs="-t $nthreads"
+            threadArgs="-t $(($nthreads - 1))"
         else
             threadArgs=""
         fi
