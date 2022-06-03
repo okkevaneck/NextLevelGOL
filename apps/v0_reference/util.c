@@ -134,6 +134,11 @@ void world_frame(world *world, FILE *output_fp) {
     int **cells = world->cells;
     int i, j;
     int ci = 0;
+
+    struct timeval tv;
+    double time_start, time_convert, time_frame, time_free;
+
+    time_start = time_secs(tv);
     uint8_t *canvas = malloc(world->width * world->height);
 
     for (i = 1; i <= world->height; i++) {
@@ -142,11 +147,26 @@ void world_frame(world *world, FILE *output_fp) {
             canvas[ci++] = cells[i][j];
         }
     }
+    time_convert = time_secs(tv);
 
     /* Write canvas to GIF file */
     write_gif_frame(world->width, world->height, canvas, output_fp);
+    time_frame = time_secs(tv);
 
     free(canvas);
+    time_free = time_secs(tv);
+
+    double time_total = time_free - time_start;
+    time_free -= time_frame;
+    time_frame -= time_convert;
+    time_convert -= time_start;
+
+    printf("convert: %f\n", (time_convert) / time_total);
+    printf("frame:   %f\n", time_frame / time_total);
+    printf("free:    %f\n\n", (time_free) / time_total);
+
+    printf("T_convert: %f\n", (time_convert + time_free) / time_total);
+    printf("T_frame:   %f\n\n\n", (time_frame) / time_total);
 }
 
 double time_secs(struct timeval tv) {
