@@ -23,11 +23,13 @@ run_scaling() {
     echo -en "\tExecuting dry run.."
 
     if [ "$3" = "das" ]; then
-        rm -f "../../profiler.gif"
-        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "../../profiler.gif" $threadArgs &> /dev/null
+        rm -f profiler.gif
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
     else
         rm -f profiler.gif
         "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
     fi
 
     echo -e "\tDone."
@@ -53,11 +55,13 @@ run_scaling() {
             echo -en "\t\tExecuting run $t.."
 
             if [ "$3" = "das" ]; then
-                rm -f "/var/scratch/$USER/profiler.gif"
-                prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" $threadArgs 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+                rm -f profiler.gif
+                prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+                rm -f profiler.gif
             else
                 rm -f profiler.gif
                 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${nthreads}_threads_t$t.out" > /dev/null
+                rm -f profiler.gif
             fi
 
             echo -e "\tDone."

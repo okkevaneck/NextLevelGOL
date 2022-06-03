@@ -23,11 +23,13 @@ run_profiler() {
     echo -en "\tExecuting dry run.."
 
     if [ "$3" = "das" ]; then
-        rm -f "../../profiler.gif"
-        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "../../profiler.gif" $threadArgs &> /dev/null
+        rm -f profiler.gif
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
     else
         rm -f profiler.gif
         "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
     fi
 
     echo -e "\tDone."
@@ -39,11 +41,13 @@ run_profiler() {
         # Remove old result files, if there are any. Then run the code and store
         # output in results folder.
         if [ "$3" = "das" ]; then
-            rm -f "../../profiler.gif"
-            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "../../profiler.gif" $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f rm -f profiler.gif
+            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o rm -f profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f profiler.gif
         else
             rm -f profiler.gif
             "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f profiler.gif
         fi
 
         echo -e "\tDone."
