@@ -38,12 +38,12 @@ def load_results():
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
                 if int(v[0]) >= 6:
                     rows.append({"nthreads": int(t), "type": "total", "value": float(lines[9][11:16])})
-                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[11][12:18])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[11][12:21])})
                     rows.append({"nthreads": int(t), "type": "overlap",
                                  "value": float(lines[8][12:18]) - float(lines[9][12:18])})
                 else:
                     rows.append({"nthreads": int(t), "type": "total", "value": float(lines[8][11:16])})
-                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[10][12:18])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[10][12:21])})
                     rows.append({"nthreads": int(t), "type": "overlap", "value": 0.0})
 
     values = pd.DataFrame(rows)

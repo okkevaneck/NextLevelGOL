@@ -30,10 +30,10 @@ def load_results():
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
                 if int(v[1:2]) >= 6:
                     rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
-                    rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:18])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:21])})
                 else:
                     rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
-                    rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:18])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:21])})
 
     values = pd.DataFrame(rows)
 
