@@ -32,7 +32,8 @@ def load_results():
 
                 # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
-                if int(v[1:2]) >= 6:
+                if (results_folder[:8] == "profiler" and int(v[1:2]) >= 6) \
+                        or (results_folder[:7] == "scaling" and int(results_folder[9:10]) >= 6):
                     rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
                     rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:21])})
                 else:
@@ -48,11 +49,23 @@ def gen_stats():
     # Fetch DatFrame with measured values.
     df = load_results()
 
-    # Create DataFrame with mean values and normalize.
-    df_mean = df.pivot_table(index="version",
-                             columns="type",
-                             values="value",
-                             aggfunc="mean")
+    df_mean = None
+
+    # If results are from profiler, just make a mean DataFrame.
+    if results_folder[:8] == "profiler":
+        # Create DataFrame with mean values and normalize.
+        df_mean = df.pivot_table(index="version",
+                                 columns="type",
+                                 values="value",
+                                 aggfunc="mean")
+    # If results are from scaler, rename version column and transform to integer type.
+    elif results_folder[:7] == "scaling":
+        df = df.rename(columns={"version": "nthreads"})
+        df = df.astype({'nthreads': 'int'})
+        df_mean = df.pivot_table(index="nthreads",
+                                 columns="type",
+                                 values="value",
+                                 aggfunc="mean")
 
     # Order DataFrame to plot in order.
     cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
@@ -82,9 +95,12 @@ if __name__ == "__main__":
     versions = args[2:]
 
     if versions[0] == "all":
-        versions = ["v0", "v1", "v2", "v3", "v4", "v5.0", "v5.1", "v6.0", "v6.1", "v7.0", "v7.1"]
+        if results_folder[:8] == "profiler":
+            versions = ["v0", "v1", "v2", "v3", "v4", "v5.0", "v5.1", "v6.0", "v6.1", "v7.0", "v7.1"]
+        elif results_folder[:7] == "scaling":
+            versions = ["1", "2", "4", "8", "9", "16"]
 
-    # Check for existence of results folder.
+# Check for existence of results folder.
     if not os.path.isdir(f"results/{results_folder}"):
         print(f"Given results folder '{results_folder}' does not exist..")
         exit(1)
