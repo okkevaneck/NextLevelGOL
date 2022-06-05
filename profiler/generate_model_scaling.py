@@ -80,11 +80,26 @@ def gen_scaling_plot():
                             values="value",
                             aggfunc="std")
 
+    # Create DataFrame with predicted values according to the model.
+    model_func = lambda t: 3.438/int(t) + 0.950 + 1.133
+
+    rows = []
+    for t in threads:
+        rows.append({"nthreads": int(t), "type": "predicted", "value": model_func(t)})
+
+    df_model = pd.DataFrame(rows).pivot_table(index="nthreads",
+                                              columns="type",
+                                              values="value")
+
     # Plot means.
+    width = 0.4
     sns.set(style="white")
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
-                                linewidth=0)
+                                linewidth=0, position=-0.02, width=width, legend=False)
+    ax2 = ax.twinx()
+    df_model.plot(kind="bar", ax=ax2, rot=0, position=1.02, linewidth=0,
+                  width=width, color="y", legend=False)
 
     # Color hatches properly.
     mpl.rcParams["hatch.linewidth"] = 7.5
@@ -115,18 +130,47 @@ def gen_scaling_plot():
     plt.xlabel("Number of threads", labelpad=0)
     plt.ylabel("Execution time (s)")
     plt.xticks(rotation=0)
-    ax = plt.gca()
     ax.tick_params(axis="both", which="major", pad=0)
     handles, labels = ax.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
 
-    # Remove overlap from legend.
+    # Remove overlap from legend, add ax2 legend.
     handles.pop(labels.index("overlap"))
     labels.pop(labels.index("overlap"))
-    ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
+    handles2.extend(handles)
+    labels2.extend(labels)
+
+    ax.legend(handles2[::-1], labels2[::-1], loc="upper right")
+    ax.set_xbound(upper=5.6)
     plt.tight_layout()
 
+    # Annotate bars from scaling.
+    patches = []
+    patches.extend(ax.patches[:len(threads)])
+    patches.extend(ax.patches[2*len(threads):3*len(threads)])
+    patches.extend(ax.patches[4*len(threads):5*len(threads)])
+
+    for p in patches:
+        width, height = p.get_width(), p.get_height()
+        x, y = p.get_xy()
+        ax.text(x+width/2,
+                y+height/2,
+                "{:.3f}".format(height),
+                horizontalalignment="center",
+                verticalalignment="center")
+
+    # Annotate bars from model.
+    for p in ax2.patches:
+        width, height = p.get_width(), p.get_height()
+        x, y = p.get_xy()
+        ax2.text(x+width/2,
+                 y+height/2,
+                 "{:.3f}".format(height),
+                 horizontalalignment="center",
+                 verticalalignment="center")
+
     # Save and show plot.
-    plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
+    plt.savefig(f"figures/model_scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 
