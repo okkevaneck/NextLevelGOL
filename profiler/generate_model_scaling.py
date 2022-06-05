@@ -3,6 +3,7 @@ Generate figures for scaling plots.
 """
 import seaborn as sns
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sys
@@ -81,7 +82,7 @@ def gen_scaling_plot():
                             aggfunc="std")
 
     # Create DataFrame with predicted values according to the model.
-    model_func = lambda t: 3.438/int(t) + 0.950 + 1.133
+    model_func = lambda t: 3.438 / int(t) + 0.950 + 1.133
 
     rows = []
     for t in threads:
@@ -144,10 +145,10 @@ def gen_scaling_plot():
     labels.extend(labels2)
 
     ax2.tick_params(left=False, labelleft=False, top=False, labeltop=False,
-                   right=False, labelright=False, bottom=False, labelbottom=False)
+                    right=False, labelright=False, bottom=False, labelbottom=False)
 
     ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
-    ax.set_xbound(upper=5.6)
+    ax.set_xbound(upper=5.7)
     plt.tight_layout()
 
     # Annotate bars from scaling.
@@ -156,22 +157,28 @@ def gen_scaling_plot():
     patches.extend(ax.patches[2*len(threads):3*len(threads)])
     patches.extend(ax.patches[4*len(threads):5*len(threads)])
 
-    for p in patches:
+    values = df_mean[["final"]].values.flatten()
+    values = np.append(values, df_mean[["gif"]].values.flatten())
+    values = np.append(values, df_mean[["step"]].values.flatten())
+
+    for p, val in zip(patches, values):
         width, height = p.get_width(), p.get_height()
         x, y = p.get_xy()
         ax.text(x+width/2,
                 y+height/2,
-                "{:.3f}".format(height),
+                "{:.3f}".format(val),
                 horizontalalignment="center",
                 verticalalignment="center")
 
     # Annotate bars from model.
-    for p in ax2.patches:
+    values = df_model[["predicted"]].values.flatten()
+
+    for p, val in zip(ax2.patches, values):
         width, height = p.get_width(), p.get_height()
         x, y = p.get_xy()
         ax2.text(x+width/2,
                  y+height/2,
-                 "{:.3f}".format(height),
+                 "{:.3f}".format(val),
                  horizontalalignment="center",
                  verticalalignment="center")
 
