@@ -3,8 +3,8 @@ import pandas as pd
 import seaborn as sns
 
 
-def load_data():
-    """Load data manually from Likwid results."""
+def load_data_sums():
+    """Load data manually from Likwid results, taking the SUM columns of the STAT."""
     rows = []
 
     # 1 thread.
@@ -94,9 +94,119 @@ def load_data():
     return pd.DataFrame(rows)
 
 
-if __name__ == '__main__':
+def load_data_gif_core():
+    """Load data manually from Likwid results, taking the core with most instructions retired."""
+    rows = []
+
+    # 1 thread.
+    rows.append({"nthreads": 1, "type": "L2_TRANS_ALL_REQUESTS", "value": 194306777})
+    rows.append({"nthreads": 1, "type": "L2_TRANS_ALL_REQUESTS", "value": 195263566})
+    rows.append({"nthreads": 1, "type": "L2_TRANS_ALL_REQUESTS", "value": 194143900})
+    rows.append({"nthreads": 1, "type": "L2_RQSTS_MISS", "value": 50295453})
+    rows.append({"nthreads": 1, "type": "L2_RQSTS_MISS", "value": 50475134})
+    rows.append({"nthreads": 1, "type": "L2_RQSTS_MISS", "value": 50429322})
+    rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001664361})
+    rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001670307})
+    rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001668791})
+    rows.append({"nthreads": 1, "type": "L2_miss_ratio", "value": 0.2588456})
+    rows.append({"nthreads": 1, "type": "L2_miss_ratio", "value": 0.2584975})
+    rows.append({"nthreads": 1, "type": "L2_miss_ratio", "value": 0.2597523})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006429938})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006461599})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006424548})
+
+    # 2 threads.
+    rows.append({"nthreads": 2, "type": "L2_TRANS_ALL_REQUESTS", "value": 145097163})
+    rows.append({"nthreads": 2, "type": "L2_TRANS_ALL_REQUESTS", "value": 144584126})
+    rows.append({"nthreads": 2, "type": "L2_TRANS_ALL_REQUESTS", "value": 145310936})
+    rows.append({"nthreads": 2, "type": "L2_RQSTS_MISS", "value": 34851218})
+    rows.append({"nthreads": 2, "type": "L2_RQSTS_MISS", "value": 34882225})
+    rows.append({"nthreads": 2, "type": "L2_RQSTS_MISS", "value": 34884865})
+    rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.002004894})
+    rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.002006672})
+    rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.002006824})
+    rows.append({"nthreads": 2, "type": "L2_miss_ratio", "value": 0.2666415})
+    rows.append({"nthreads": 2, "type": "L2_miss_ratio", "value": 0.2412590})
+    rows.append({"nthreads": 2, "type": "L2_miss_ratio", "value": 0.2006824})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.008347039})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.008317502})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.008359314})
+
+    # 4 threads.
+    rows.append({"nthreads": 4, "type": "L2_TRANS_ALL_REQUESTS", "value": 119294626})
+    rows.append({"nthreads": 4, "type": "L2_TRANS_ALL_REQUESTS", "value": 119325553})
+    rows.append({"nthreads": 4, "type": "L2_TRANS_ALL_REQUESTS", "value": 120812223})
+    rows.append({"nthreads": 4, "type": "L2_RQSTS_MISS", "value": 27089421})
+    rows.append({"nthreads": 4, "type": "L2_RQSTS_MISS", "value": 27119883})
+    rows.append({"nthreads": 4, "type": "L2_RQSTS_MISS", "value": 27074122})
+    rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.002473464})
+    rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.002476260})
+    rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.002472067})
+    rows.append({"nthreads": 4, "type": "L2_miss_ratio", "value": 0.2270800})
+    rows.append({"nthreads": 4, "type": "L2_miss_ratio", "value": 0.2272764})
+    rows.append({"nthreads": 4, "type": "L2_miss_ratio", "value": 0.2241009})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.01089248})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.01089537})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.01103105})
+
+    # 8 threads.
+    rows.append({"nthreads": 8, "type": "L2_TRANS_ALL_REQUESTS", "value": 103145488})
+    rows.append({"nthreads": 8, "type": "L2_TRANS_ALL_REQUESTS", "value": 103784012})
+    rows.append({"nthreads": 8, "type": "L2_TRANS_ALL_REQUESTS", "value": 101774666})
+    rows.append({"nthreads": 8, "type": "L2_RQSTS_MISS", "value": 22912042})
+    rows.append({"nthreads": 8, "type": "L2_RQSTS_MISS", "value": 22912141})
+    rows.append({"nthreads": 8, "type": "L2_RQSTS_MISS", "value": 22821783})
+    rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.002966490})
+    rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.002966504})
+    rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.002954805})
+    rows.append({"nthreads": 8, "type": "L2_miss_ratio", "value": 0.2221332})
+    rows.append({"nthreads": 8, "type": "L2_miss_ratio", "value": 0.2207675})
+    rows.append({"nthreads": 8, "type": "L2_miss_ratio", "value": 0.2242383})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.01335455})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.01343723})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.01317707})
+
+    # 9 threads.
+    rows.append({"nthreads": 9, "type": "L2_TRANS_ALL_REQUESTS", "value": 108537837})
+    rows.append({"nthreads": 9, "type": "L2_TRANS_ALL_REQUESTS", "value": 107690352})
+    rows.append({"nthreads": 9, "type": "L2_TRANS_ALL_REQUESTS", "value": 105506646})
+    rows.append({"nthreads": 9, "type": "L2_RQSTS_MISS", "value": 22367536})
+    rows.append({"nthreads": 9, "type": "L2_RQSTS_MISS", "value": 22371510})
+    rows.append({"nthreads": 9, "type": "L2_RQSTS_MISS", "value": 22302367})
+    rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.003038231})
+    rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.003038772})
+    rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.003029381})
+    rows.append({"nthreads": 9, "type": "L2_miss_ratio", "value": 0.2060805})
+    rows.append({"nthreads": 9, "type": "L2_miss_ratio", "value": 0.2077392})
+    rows.append({"nthreads": 9, "type": "L2_miss_ratio", "value": 0.2113835})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.01474293})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.01462782})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.01433121})
+
+    # 16 threads.
+    rows.append({"nthreads": 16, "type": "L2_TRANS_ALL_REQUESTS", "value": 97071355})
+    rows.append({"nthreads": 16, "type": "L2_TRANS_ALL_REQUESTS", "value": 98837923})
+    rows.append({"nthreads": 16, "type": "L2_TRANS_ALL_REQUESTS", "value": 97130796})
+    rows.append({"nthreads": 16, "type": "L2_RQSTS_MISS", "value": 20910072})
+    rows.append({"nthreads": 16, "type": "L2_RQSTS_MISS", "value": 20804818})
+    rows.append({"nthreads": 16, "type": "L2_RQSTS_MISS", "value": 20795623})
+    rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.003415077})
+    rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.003397888})
+    rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.003396387})
+    rows.append({"nthreads": 16, "type": "L2_miss_ratio", "value": 0.2154093})
+    rows.append({"nthreads": 16, "type": "L2_miss_ratio", "value": 0.2104943})
+    rows.append({"nthreads": 16, "type": "L2_miss_ratio", "value": 0.2140992})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.01585390})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.01614242})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.01586362})
+
+    return pd.DataFrame(rows)
+
+
+def plot_sums():
+    """Loads and prints the SUM columns of the STATS."""
     # Manually add data from Likwid results.
-    df = load_data()
+    df = load_data_sums()
 
     # Take mean values of the collected resutls.
     df_mean = df.pivot_table(index="nthreads",
@@ -104,9 +214,61 @@ if __name__ == '__main__':
                              values="value",
                              aggfunc="mean")
 
-    print(df_mean)
-
-    # Plot means.
+    # Plot means of two lines, sharing one legend.
     sns.set(style="white")
-    ax = df_mean[["L2_request_rate"]].plot(figsize=(9, 6), rot=0)
+    ax = df_mean[["L2_RQSTS_MISS"]].plot(figsize=(9, 6), rot=0, color="b",
+                                         marker=".", legend=False)
+    ax2 = ax.twinx()
+    df_mean[["L2_TRANS_ALL_REQUESTS"]].plot(rot=0, ax=ax2, color="r", marker=".",
+                                            legend=False)
+
+    # Color ticks accordingly.
+    ax.tick_params(axis='y', colors='b')
+    ax2.tick_params(axis='y', colors='r')
+
+    # Add title, labels, and legend.
+    plt.title(f"L2 cache performance counters for v5.0", fontsize=16)
+    ax.set_xlabel("Number of threads")
+    ax.set_ylabel("Number of L2 misses")
+    ax2.set_ylabel("Rate of L2 requests")
+
+    ax.figure.legend()
     plt.show()
+
+
+def plot_gif_core():
+    """Loads and prints the SUM columns of the STATS."""
+    # Manually add data from Likwid results.
+    df = load_data_gif_core()
+
+    # Take mean values of the collected resutls.
+    df_mean = df.pivot_table(index="nthreads",
+                             columns="type",
+                             values="value",
+                             aggfunc="mean")
+
+    # Plot means of two lines, sharing one legend.
+    sns.set(style="white")
+    ax = df_mean[["L2_TRANS_ALL_REQUESTS"]].plot(figsize=(9, 6), rot=0, color="b",
+                                                 marker=".", legend=False)
+    ax2 = ax.twinx()
+    df_mean[["L2_miss_rate"]].plot(rot=0, ax=ax2, color="r", marker=".",
+                                   legend=False)
+
+    # Color ticks accordingly.
+    ax.tick_params(axis='y', colors='b')
+    ax2.tick_params(axis='y', colors='r')
+
+    # Add title, labels, and legend.
+    plt.title(f"L2 cache performance counters for v5.0", fontsize=16)
+    ax.set_xlabel("Number of threads")
+    ax.set_ylabel("Number of L2 requests")
+    ax2.set_ylabel("Rate of L2 misses")
+
+    ax.figure.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    plot_gif_core()
