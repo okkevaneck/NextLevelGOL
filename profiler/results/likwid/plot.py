@@ -17,6 +17,9 @@ def load_data():
     rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001664361})
     rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001670307})
     rows.append({"nthreads": 1, "type": "L2_miss_rate", "value": 0.001668791})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006429938})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006461599})
+    rows.append({"nthreads": 1, "type": "L2_request_rate", "value": 0.006424548})
 
     # 2 threads.
     rows.append({"nthreads": 2, "type": "L2_TRANS_ALL_REQUESTS", "value": 204362790})
@@ -28,6 +31,9 @@ def load_data():
     rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.003230948})
     rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.002006672})
     rows.append({"nthreads": 2, "type": "L2_miss_rate", "value": 0.002006824})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.012945175})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.01291364})
+    rows.append({"nthreads": 2, "type": "L2_request_rate", "value": 0.012964993})
 
     # 4 threads.
     rows.append({"nthreads": 4, "type": "L2_TRANS_ALL_REQUESTS", "value": 205323103})
@@ -39,6 +45,9 @@ def load_data():
     rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.006194665})
     rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.006191866})
     rows.append({"nthreads": 4, "type": "L2_miss_rate", "value": 0.006181466})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.024248548})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.024273942})
+    rows.append({"nthreads": 4, "type": "L2_request_rate", "value": 0.024431015})
 
     # 8 threads.
     rows.append({"nthreads": 8, "type": "L2_TRANS_ALL_REQUESTS", "value": 198986917})
@@ -50,6 +59,9 @@ def load_data():
     rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.01155276})
     rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.011544719})
     rows.append({"nthreads": 8, "type": "L2_miss_rate", "value": 0.011535204})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.043094863})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.043285278})
+    rows.append({"nthreads": 8, "type": "L2_request_rate", "value": 0.042908756})
 
     # 9 threads.
     rows.append({"nthreads": 9, "type": "L2_TRANS_ALL_REQUESTS", "value": 218591478})
@@ -61,6 +73,9 @@ def load_data():
     rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.013140276})
     rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.013180369})
     rows.append({"nthreads": 9, "type": "L2_miss_rate", "value": 0.013137671})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.053153218})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.052998239})
+    rows.append({"nthreads": 9, "type": "L2_request_rate", "value": 0.052567259})
 
     # 16 threads.
     rows.append({"nthreads": 16, "type": "L2_TRANS_ALL_REQUESTS", "value": 206059767})
@@ -72,6 +87,9 @@ def load_data():
     rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.022683444})
     rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.022566203})
     rows.append({"nthreads": 16, "type": "L2_miss_rate", "value": 0.022248411})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.083510598})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.083945513})
+    rows.append({"nthreads": 16, "type": "L2_request_rate", "value": 0.083138045})
 
     return pd.DataFrame(rows)
 
@@ -90,5 +108,5 @@ if __name__ == '__main__':
 
     # Plot means.
     sns.set(style="white")
-    ax = df_mean[["L2_RQSTS_MISS"]].plot(figsize=(9, 6), rot=0)
+    ax = df_mean[["L2_request_rate"]].plot(figsize=(9, 6), rot=0)
     plt.show()
