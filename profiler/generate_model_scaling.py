@@ -92,13 +92,13 @@ def gen_scaling_plot():
                                               values="value")
 
     # Plot means.
-    width = 0.4
+    width = 0.43
     sns.set(style="white")
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
-                                linewidth=0, position=-0.02, width=width, legend=False)
+                                linewidth=0, position=-0.012, width=width, legend=False)
     ax2 = ax.twinx()
-    df_model.plot(kind="bar", ax=ax2, rot=0, position=1.02, linewidth=0,
+    df_model.plot(kind="bar", ax=ax2, rot=0, position=1.012, linewidth=0,
                   width=width, color="y", legend=False)
 
     # Color hatches properly.
@@ -126,7 +126,7 @@ def gen_scaling_plot():
         ax.patches[stepIdx].set_facecolor(ax.patches[ovlpIdx].get_facecolor())
 
     # Add info to plot.
-    plt.title(f"Modelled execution time per number of threads for {results_folder[8:12]}",
+    plt.title(f"Modeled execution time per number of threads for {results_folder[8:12]}",
               fontsize=16)
     ax.set_xlabel("Number of threads", labelpad=0)
     ax.set_ylabel("Execution time (s)")
@@ -146,7 +146,6 @@ def gen_scaling_plot():
     ax2.tick_params(left=False, labelleft=False, top=False, labeltop=False,
                    right=False, labelright=False, bottom=False, labelbottom=False)
 
-    # ax.legend(handles[::-1], labels[::-1], loc="upper right")
     ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
     ax.set_xbound(upper=5.6)
     plt.tight_layout()
