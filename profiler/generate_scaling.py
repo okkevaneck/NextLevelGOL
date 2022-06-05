@@ -55,7 +55,7 @@ def gen_scaling_plot():
     # Fetch DatFrame with measured values.
     df = load_results()
 
-    # Create DataFrame with mean values and normalize.
+    # Create DataFrame with mean values.
     df_mean = df.pivot_table(index="nthreads",
                              columns="type",
                              values="value",

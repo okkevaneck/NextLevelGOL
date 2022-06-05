@@ -30,13 +30,13 @@
 
 Averages:
     L2_TRANS_ALL_REQUESTS
-        1 thread: 194024276
-        2 thread: 203726157
-        4 thread: 205690115
+        1 thread:  194024276
+        2 threads: 203726157
+        4 threads: 205690115
     L2_RQSTS_MISS
-        1 thread: 50425307
-        2 thread: 50739576
-        4 thread: 51110186
+        1 thread:  50425307
+        2 threads: 50739576
+        4 threads: 51110186
 
 Diffs:
     L2_TRANS_ALL_REQUESTS
