@@ -249,24 +249,26 @@ def plot_gif_core():
 
     # Plot means of two lines, sharing one legend.
     sns.set(style="white")
-    ax = df_mean[["L2_TRANS_ALL_REQUESTS"]].plot(figsize=(9, 6), rot=0, color="b",
-                                                 marker=".", legend=False)
+    ax = df_mean[["L2_TRANS_ALL_REQUESTS"]].plot(figsize=(9, 6), rot=0,
+                                                 color="b", marker=".",
+                                                 legend=False)
     ax2 = ax.twinx()
     df_mean[["L2_miss_rate"]].plot(rot=0, ax=ax2, color="r", marker=".",
                                    legend=False)
 
     # Color ticks accordingly.
-    ax.tick_params(axis='y', colors='b')
-    ax2.tick_params(axis='y', colors='r')
+    ax.tick_params(axis="y", colors="b")
+    ax2.tick_params(axis="y", colors="r")
 
     # Add title, labels, and legend.
-    plt.title(f"L2 cache performance counters for v5.0", fontsize=16)
+    plt.title(f"L2 performance counters for main thread (v5.0)", fontsize=16)
     ax.set_xlabel("Number of threads")
-    ax.set_ylabel("Number of L2 requests")
+    ax.set_ylabel("Amount of L2 requests")
     ax2.set_ylabel("Rate of L2 misses")
+    ax.figure.legend(loc="upper center", bbox_to_anchor=(0.5, 0.94))
 
-    ax.figure.legend()
     plt.tight_layout()
+    plt.savefig("v5.0_cache_misses_core.png")
     plt.show()
 
 
