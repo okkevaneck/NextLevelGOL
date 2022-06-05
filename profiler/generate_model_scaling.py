@@ -126,21 +126,28 @@ def gen_scaling_plot():
         ax.patches[stepIdx].set_facecolor(ax.patches[ovlpIdx].get_facecolor())
 
     # Add info to plot.
-    plt.title(f"Segregated execution time per number of threads for {results_folder[8:12]}", fontsize=16)
-    plt.xlabel("Number of threads", labelpad=0)
-    plt.ylabel("Execution time (s)")
+    plt.title(f"Modelled execution time per number of threads for {results_folder[8:12]}",
+              fontsize=16)
+    ax.set_xlabel("Number of threads", labelpad=0)
+    ax.set_ylabel("Execution time (s)")
     plt.xticks(rotation=0)
     ax.tick_params(axis="both", which="major", pad=0)
     handles, labels = ax.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels()
 
-    # Remove overlap from legend, add ax2 legend.
-    handles.pop(labels.index("overlap"))
-    labels.pop(labels.index("overlap"))
-    handles2.extend(handles)
-    labels2.extend(labels)
+    # Remove unwanted labels from legend, add ax2 legend.
+    for n in ["overlap", "init", "wrap", "swap"]:
+        handles.pop(labels.index(n))
+        labels.pop(labels.index(n))
 
-    ax.legend(handles2[::-1], labels2[::-1], loc="upper right")
+    handles.extend(handles2)
+    labels.extend(labels2)
+
+    ax2.tick_params(left=False, labelleft=False, top=False, labeltop=False,
+                   right=False, labelright=False, bottom=False, labelbottom=False)
+
+    # ax.legend(handles[::-1], labels[::-1], loc="upper right")
+    ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
     ax.set_xbound(upper=5.6)
     plt.tight_layout()
 
