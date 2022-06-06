@@ -83,7 +83,13 @@ def gen_scaling_plot():
                             aggfunc="std")
 
     # Create DataFrame with predicted values according to the model.
-    model_func = lambda t: 3.438 / int(t) + 0.950 + 1.133
+    model_func = None
+    if int(results_folder[9:10]) == 5:
+        model_func = lambda t: 3.438 / int(t) + 0.950 + 1.133
+    elif int(results_folder[9:10]) == 6:
+        model_func = lambda t: max(3.438 / (int(t) - 1), 0.950) + 1.133
+    else:
+        model_func = lambda t: t
 
     rows = []
     for t in threads:
@@ -145,6 +151,9 @@ def gen_scaling_plot():
     handles.extend(handles2)
     labels.extend(labels2)
 
+    # Fix 2nd axis.
+    ymin, ymax = ax.get_ylim()
+    ax2.set_ylim((ymin, ymax))
     ax2.tick_params(left=False, labelleft=False, top=False, labeltop=False,
                     right=False, labelright=False, bottom=False, labelbottom=False)
 
@@ -170,7 +179,7 @@ def gen_scaling_plot():
         width, height = p.get_width(), p.get_height()
 
         if int(results_folder[9:10]) >= 6 and i >= len(threads * 2):
-            height = height/20 - 0.7
+            height = height/20 - 0.6
 
         x, y = p.get_xy()
         ax.text(x+width/2,
