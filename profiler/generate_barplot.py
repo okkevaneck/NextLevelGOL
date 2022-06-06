@@ -68,6 +68,8 @@ def gen_barplot():
 
     for idx in idxs:
         df_mean.loc[idx]["step"] -= df_mean.loc[idx]["overlap"]
+        df_mean.loc[idx]["gif"] -= df_mean.loc[idx]["overlap"]
+        df_mean[df_mean < 0] = 0
 
     # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()
