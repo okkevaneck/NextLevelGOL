@@ -17,7 +17,6 @@ def load_results():
     # Load results in variables.
     for t in threads:
         fs = glob.glob(f"results/{results_folder}/{t}_*")
-        v = results_folder[9:12]
 
         for run_fp in fs:
             with open(run_fp, "r") as fp:
@@ -37,7 +36,7 @@ def load_results():
 
                 # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
-                if int(v[0]) >= 6:
+                if mversion >= 6:
                     rows.append({"nthreads": int(t), "type": "total", "value": float(lines[9][11:16])})
                     rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[11][12:21])})
                     rows.append({"nthreads": int(t), "type": "overlap",
@@ -62,19 +61,17 @@ def gen_scaling_plot():
                              values="value",
                              aggfunc="mean")
 
-    cols = ["throughput", "total", "final",  "swap", "gif", "overlap", "step", "wrap", "init"]
+    cols = ["throughput", "total", "final", "swap", "gif", "overlap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
     # Subtract overlap from step for all rows that do not belong to v7.0.
     # Subtract overlap from gif for the rows of version 7.0.
-    idxs = list(df_mean.index)
-
-    if "v7.0" in idxs:
-        idxs.remove("v7.0")
-        df_mean.loc["v7.0"]["gif"] = df_mean.loc["v7.0"]["gif"] - df_mean.loc["v7.0"]["overlap"]
-
-    for idx in idxs:
-        df_mean.loc[idx]["step"] -= df_mean.loc[idx]["overlap"]
+    print("Before:\n", df_mean)
+    if fversion == "v7.0":
+        df_mean["gif"] -= df_mean["overlap"]
+    else:
+        df_mean["step"] -= df_mean["overlap"]
+    print("After:\n", df_mean)
 
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="nthreads",
@@ -83,7 +80,6 @@ def gen_scaling_plot():
                             aggfunc="std")
 
     # Create DataFrame with predicted values according to the model.
-    model_func = None
     if int(results_folder[9:10]) == 5:
         model_func = lambda t: 3.438 / int(t) + 0.950 + 1.133
     elif int(results_folder[9:10]) == 6:
@@ -102,6 +98,7 @@ def gen_scaling_plot():
     # Plot means.
     width = 0.43
     sns.set(style="white")
+    print(df_mean[cols[2:]])
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
                                 linewidth=0, position=-0.012, width=width, legend=False)
@@ -159,7 +156,7 @@ def gen_scaling_plot():
 
     ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
 
-    if int(results_folder[9:10]) >= 6:
+    if mversion >= 6:
         ax.set_xbound(upper=4.7)
     else:
         ax.set_xbound(upper=5.7)
@@ -168,22 +165,26 @@ def gen_scaling_plot():
     # Annotate bars from scaling.
     patches = []
     patches.extend(ax.patches[:len(threads)])
-    patches.extend(ax.patches[2*len(threads):3*len(threads)])
-    patches.extend(ax.patches[4*len(threads):5*len(threads)])
+    patches.extend(ax.patches[2 * len(threads):3 * len(threads)])
+    patches.extend(ax.patches[4 * len(threads):5 * len(threads)])
 
     values = df_mean[["final"]].values.flatten()
     values = np.append(values, df_mean[["gif"]].values.flatten())
-    values = np.append(values, df_mean[["step"]].values.flatten())
+
+    if mversion >= 6:
+        values = np.append(values, df_mean["step"] + df_mean["overlap"])
+    else:
+        values = np.append(values, df_mean[["step"]].values.flatten())
 
     for p, val, i in zip(patches, values, range(len(values))):
         width, height = p.get_width(), p.get_height()
 
-        if int(results_folder[9:10]) >= 6 and i >= len(threads * 2):
-            height = height/20 - 0.6
+        if mversion >= 6 and i >= len(threads * 2):
+            height = height / 20 - 0.6
 
         x, y = p.get_xy()
-        ax.text(x+width/2,
-                y+height/2,
+        ax.text(x + width / 2,
+                y + height / 2,
                 "{:.3f}".format(val),
                 horizontalalignment="center",
                 verticalalignment="center")
@@ -194,8 +195,8 @@ def gen_scaling_plot():
     for p, val in zip(ax2.patches, values):
         width, height = p.get_width(), p.get_height()
         x, y = p.get_xy()
-        ax2.text(x+width/2,
-                 y+height/2,
+        ax2.text(x + width / 2,
+                 y + height / 2,
                  "{:.3f}".format(val),
                  horizontalalignment="center",
                  verticalalignment="center")
@@ -222,6 +223,9 @@ if __name__ == "__main__":
         if len(files) == 0:
             print(f"Results for '{t}' threads do not exist..")
             exit(1)
+
+    fversion = results_folder[8:12]
+    mversion = int(results_folder[9:10])
 
     # Generate normalized bar plot with the given versions.
     gen_scaling_plot()
