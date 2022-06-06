@@ -34,10 +34,12 @@ def load_results():
                 # Including version 7.0, because it is special (and does have latency hiding without pthreads).
                 if (results_folder[:8] == "profiler" and int(v[1:2]) >= 6) \
                         or (results_folder[:7] == "scaling" and int(results_folder[9:10]) >= 6):
-                    rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
+                    rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"version": v, "type": "actual", "value": float(lines[9][11:16])})
                     rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:21])})
                 else:
                     rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"version": v, "type": "actual", "value": float(lines[8][11:16])})
                     rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:21])})
 
     values = pd.DataFrame(rows)
@@ -68,12 +70,22 @@ def gen_stats():
                                  aggfunc="mean")
 
     # Order DataFrame to plot in order.
-    cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap", "init"]
-    df_mean = df_mean[cols]
+    if "actual" in df_mean.columns:
+        cols = ["throughput", "actual", "total", "final", "gif", "swap", "step",
+                "wrap", "init"]
+        df_mean = df_mean[cols]
+    else:
+        cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap",
+                "init"]
+        df_mean = df_mean[cols]
 
     # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()
-    df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
+
+    if "actual" in df_mean.columns:
+        df_mean_norm.iloc[:, 3:] = df_mean_norm.iloc[:, 3:].div(df_mean_norm.iloc[:, 3:].sum(axis=1), axis=0)
+    else:
+        df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
 
     # Write means file.
     with open(f"results/stats/{results_folder}_means.csv", "w") as fp:
@@ -96,11 +108,12 @@ if __name__ == "__main__":
 
     if versions[0] == "all":
         if results_folder[:8] == "profiler":
-            versions = ["v0", "v1", "v2", "v3", "v4", "v5.0", "v5.1", "v6.0", "v6.1", "v7.0", "v7.1"]
+            versions = ["v0", "v1", "v2", "v3", "v4", "v5.0", "v5.1", "v6.0",
+                        "v6.1", "v7.0", "v7.1"]
         elif results_folder[:7] == "scaling":
             versions = ["1", "2", "4", "8", "9", "16"]
 
-# Check for existence of results folder.
+    # Check for existence of results folder.
     if not os.path.isdir(f"results/{results_folder}"):
         print(f"Given results folder '{results_folder}' does not exist..")
         exit(1)

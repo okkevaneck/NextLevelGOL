@@ -39,8 +39,6 @@ def load_results():
                     rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:21])})
                     rows.append({"version": v, "type": "overlap", "value": 0.0})
 
-                # print(rows[-3:])
-
     values = pd.DataFrame(rows)
 
     return values
