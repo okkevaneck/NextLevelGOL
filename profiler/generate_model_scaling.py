@@ -67,14 +67,12 @@ def gen_scaling_plot():
 
     # Subtract overlap from step for all rows that do not belong to v7.0.
     # Subtract overlap from gif for the rows of version 7.0.
-    print("Before:\n", df_mean)
     if fversion == "v7.0":
         df_mean["gif"] -= df_mean["overlap"]
     elif mversion >= 6:
         df_mean["gif"] -= df_mean["overlap"]
         df_mean["step"] -= df_mean["overlap"]
         df_mean[df_mean < 0] = 0
-    print("After:\n", df_mean)
 
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="nthreads",

@@ -70,10 +70,12 @@ def gen_scaling_plot():
 
     if "v7.0" in idxs:
         idxs.remove("v7.0")
-        df_mean.loc["v7.0"]["gif"] = df_mean.loc["v7.0"]["gif"] - df_mean.loc["v7.0"]["overlap"]
+        df_mean.loc["v7.0"]["gif"] -= - df_mean.loc["v7.0"]["overlap"]
 
     for idx in idxs:
         df_mean.loc[idx]["step"] -= df_mean.loc[idx]["overlap"]
+        df_mean.loc[idx]["gif"] -= df_mean.loc[idx]["overlap"]
+        df_mean[df_mean < 0] = 0
 
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="nthreads",
