@@ -63,34 +63,36 @@ def printTable(v, d, p, r, prev):
 
 data = {}
 
-with open('means.csv', mode='r') as file:
+with open('profiler_all_1654273478_means.csv', mode='r') as file:
     meansFile = csv.reader(file)
     for l in meansFile:
         if (l[0] == 'version'):
             continue
         v = data[l[0]] = {}
-        v['init:t']     = float(l[8])
-        v['wrap:t']     = float(l[7])
-        v['step:t']     = float(l[6])
-        v['swap:t']     = float(l[5])
-        v['gif:t']      = float(l[4])
-        v['final:t']    = float(l[3])
-        v['total:t']    = float(l[2])
+        v['init:t']     = float(l[9])
+        v['wrap:t']     = float(l[8])
+        v['step:t']     = float(l[7])
+        v['swap:t']     = float(l[6])
+        v['gif:t']      = float(l[5])
+        v['final:t']    = float(l[4])
+        v['total:t']    = float(l[3])
+        v['actual:t']   = float(l[2])
         v['throughput'] = float(l[1])
 
-with open('percentages.csv', mode='r') as file:
+with open('profiler_all_1654273478_percentages.csv', mode='r') as file:
     percentagesFile = csv.reader(file)
     for l in percentagesFile:
         if (l[0] == 'version'):
             continue
         v = data[l[0]]
-        v['init:p']     = float(l[8])
-        v['wrap:p']     = float(l[7])
-        v['step:p']     = float(l[6])
-        v['swap:p']     = float(l[5])
-        v['gif:p']      = float(l[4])
-        v['final:p']    = float(l[3])
-        v['total:p']    = float(l[2])
+        v['init:p']     = float(l[9])
+        v['wrap:p']     = float(l[8])
+        v['step:p']     = float(l[7])
+        v['swap:p']     = float(l[6])
+        v['gif:p']      = float(l[5])
+        v['final:p']    = float(l[4])
+        v['total:p']    = float(l[3])
+        v['actual:p']   = float(l[2])
 
 
 keys = [key for key in data.keys()]
