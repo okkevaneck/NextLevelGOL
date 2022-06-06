@@ -9,6 +9,7 @@ import matplotlib as mpl
 import sys
 import os
 import glob
+import math
 
 
 def load_results():
@@ -69,8 +70,10 @@ def gen_scaling_plot():
     print("Before:\n", df_mean)
     if fversion == "v7.0":
         df_mean["gif"] -= df_mean["overlap"]
-    else:
+    elif mversion >= 6:
+        df_mean["gif"] -= df_mean["overlap"]
         df_mean["step"] -= df_mean["overlap"]
+        df_mean[df_mean < 0] = 0
     print("After:\n", df_mean)
 
     # Create DataFrame for the error bars (std).
@@ -98,7 +101,6 @@ def gen_scaling_plot():
     # Plot means.
     width = 0.43
     sns.set(style="white")
-    print(df_mean[cols[2:]])
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
                                 linewidth=0, position=-0.012, width=width, legend=False)
@@ -158,36 +160,58 @@ def gen_scaling_plot():
 
     if mversion >= 6:
         ax.set_xbound(upper=4.7)
+
+        # Annotate bars from scaling.
+        patches = []
+        patches.extend(ax.patches[:len(threads)])
+
+        # Add label sets composed of (height, value).
+        annot_final = list(zip(0.5 * df_mean["final"],
+                               df_mean["final"]))
+        annot_gif = list(zip(df_mean["final"] + 0.15,
+                             df_mean["gif"] + df_mean["overlap"]))
+        annot_step = list(zip(df_mean["final"] + df_mean["gif"] + df_mean["overlap"] + df_mean["step"] - 0.15,
+                              df_mean["step"] + df_mean["overlap"]))
+
+        for i, p in enumerate(patches):
+            for c_h, c_v in [tuple(annot_final[i]), tuple(annot_gif[i]), tuple(annot_step[i])]:
+                width = p.get_width()
+                x, _ = p.get_xy()
+
+                ax.text(x + width / 2,
+                        c_h,
+                        "{:.3f}".format(c_v),
+                        horizontalalignment="center",
+                        verticalalignment="center")
     else:
         ax.set_xbound(upper=5.7)
-    plt.tight_layout()
 
-    # Annotate bars from scaling.
-    patches = []
-    patches.extend(ax.patches[:len(threads)])
-    patches.extend(ax.patches[2 * len(threads):3 * len(threads)])
-    patches.extend(ax.patches[4 * len(threads):5 * len(threads)])
+        # Annotate bars from scaling.
+        patches = []
+        patches.extend(ax.patches[:len(threads)])
+        patches.extend(ax.patches[2 * len(threads):3 * len(threads)])
+        patches.extend(ax.patches[4 * len(threads):5 * len(threads)])
 
-    values = df_mean[["final"]].values.flatten()
-    values = np.append(values, df_mean[["gif"]].values.flatten())
+        values = df_mean[["final"]].values.flatten()
+        values = np.append(values, df_mean[["gif"]].values.flatten())
 
-    if mversion >= 6:
-        values = np.append(values, df_mean["step"] + df_mean["overlap"])
-    else:
-        values = np.append(values, df_mean[["step"]].values.flatten())
+        if mversion >= 6:
+            values = np.append(values, df_mean["step"] + df_mean["overlap"])
+        else:
+            values = np.append(values, df_mean[["step"]].values.flatten())
 
-    for p, val, i in zip(patches, values, range(len(values))):
-        width, height = p.get_width(), p.get_height()
+        for p, val, i in zip(patches, values, range(len(values))):
+            width, height = p.get_width(), p.get_height()
 
-        if mversion >= 6 and i >= len(threads * 2):
-            height = height / 20 - 0.6
+            if mversion >= 6 and i >= len(threads * 2):
+                height = height / 20 - 0.6
 
-        x, y = p.get_xy()
-        ax.text(x + width / 2,
-                y + height / 2,
-                "{:.3f}".format(val),
-                horizontalalignment="center",
-                verticalalignment="center")
+            x, y = p.get_xy()
+            ax.text(x + width / 2,
+                    y + height / 2,
+                    "{:.3f}".format(val),
+                    horizontalalignment="center",
+                    verticalalignment="center")
 
     # Annotate bars from model.
     values = df_model[["predicted"]].values.flatten()
@@ -202,6 +226,7 @@ def gen_scaling_plot():
                  verticalalignment="center")
 
     # Save and show plot.
+    plt.tight_layout()
     plt.savefig(f"figures/model_scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
