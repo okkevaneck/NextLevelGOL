@@ -129,8 +129,8 @@ def gen_barplot():
     plt.tight_layout()
 
     # Save and show plot.
-    # plt.savefig(f"figures/barplot_no_error/{results_folder}_{'-'.join(versions)}.png")
-    # plt.savefig(f"figures/barplot_norm_no_error/{results_folder}_{'-'.join(versions)}.png")
+    # plt.savefig(f"figures/barplots_no_error/{results_folder}_{'-'.join(versions)}.png")
+    plt.savefig(f"figures/barplots_norm_no_error/{results_folder}_{'-'.join(versions)}.png")
     plt.show()
 
 

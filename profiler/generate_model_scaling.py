@@ -3,6 +3,7 @@ Generate figures for scaling plots.
 """
 import seaborn as sns
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sys
@@ -80,11 +81,26 @@ def gen_scaling_plot():
                             values="value",
                             aggfunc="std")
 
+    # Create DataFrame with predicted values according to the model.
+    model_func = lambda t: 3.438 / int(t) + 0.950 + 1.133
+
+    rows = []
+    for t in threads:
+        rows.append({"nthreads": int(t), "type": "predicted", "value": model_func(t)})
+
+    df_model = pd.DataFrame(rows).pivot_table(index="nthreads",
+                                              columns="type",
+                                              values="value")
+
     # Plot means.
+    width = 0.43
     sns.set(style="white")
     ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
                                 # yerr=df_std[["step", "gif", "final"]]
-                                linewidth=0)
+                                linewidth=0, position=-0.012, width=width, legend=False)
+    ax2 = ax.twinx()
+    df_model.plot(kind="bar", ax=ax2, rot=0, position=1.012, linewidth=0,
+                  width=width, color="y", legend=False)
 
     # Color hatches properly.
     mpl.rcParams["hatch.linewidth"] = 7.5
@@ -111,22 +127,63 @@ def gen_scaling_plot():
         ax.patches[stepIdx].set_facecolor(ax.patches[ovlpIdx].get_facecolor())
 
     # Add info to plot.
-    plt.title(f"Segregated execution time per number of threads for {results_folder[8:12]}", fontsize=16)
-    plt.xlabel("Number of threads", labelpad=0)
-    plt.ylabel("Execution time (s)")
+    plt.title(f"Modeled execution time per number of threads for {results_folder[8:12]}",
+              fontsize=16)
+    ax.set_xlabel("Number of threads", labelpad=0)
+    ax.set_ylabel("Execution time (s)")
     plt.xticks(rotation=0)
-    ax = plt.gca()
     ax.tick_params(axis="both", which="major", pad=0)
     handles, labels = ax.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
 
-    # Remove overlap from legend.
-    handles.pop(labels.index("overlap"))
-    labels.pop(labels.index("overlap"))
+    # Remove unwanted labels from legend, add ax2 legend.
+    for n in ["overlap", "init", "wrap", "swap"]:
+        handles.pop(labels.index(n))
+        labels.pop(labels.index(n))
+
+    handles.extend(handles2)
+    labels.extend(labels2)
+
+    ax2.tick_params(left=False, labelleft=False, top=False, labeltop=False,
+                    right=False, labelright=False, bottom=False, labelbottom=False)
+
     ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
+    ax.set_xbound(upper=5.7)
     plt.tight_layout()
 
+    # Annotate bars from scaling.
+    patches = []
+    patches.extend(ax.patches[:len(threads)])
+    patches.extend(ax.patches[2*len(threads):3*len(threads)])
+    patches.extend(ax.patches[4*len(threads):5*len(threads)])
+
+    values = df_mean[["final"]].values.flatten()
+    values = np.append(values, df_mean[["gif"]].values.flatten())
+    values = np.append(values, df_mean[["step"]].values.flatten())
+
+    for p, val in zip(patches, values):
+        width, height = p.get_width(), p.get_height()
+        x, y = p.get_xy()
+        ax.text(x+width/2,
+                y+height/2,
+                "{:.3f}".format(val),
+                horizontalalignment="center",
+                verticalalignment="center")
+
+    # Annotate bars from model.
+    values = df_model[["predicted"]].values.flatten()
+
+    for p, val in zip(ax2.patches, values):
+        width, height = p.get_width(), p.get_height()
+        x, y = p.get_xy()
+        ax2.text(x+width/2,
+                 y+height/2,
+                 "{:.3f}".format(val),
+                 horizontalalignment="center",
+                 verticalalignment="center")
+
     # Save and show plot.
-    plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
+    plt.savefig(f"figures/model_scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 
