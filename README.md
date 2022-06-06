@@ -21,6 +21,6 @@ You can find all implementations in the `apps` directory.
 ## Acknowledgements
 The inital code was based on the assignment from the
 [Parallel Programing Practical course](https://studiegids.vu.nl/en/Master/2021-2022/computer-science-joint-degree/X_400162/)
-at the Vrije Universiteit in Amsterdam, the Netherlands and the
+at the Vrije Universiteit in Amsterdam, the Netherlands, and the
 [CS2110 course](https://web.cs.dal.ca/~arc/teaching/CS4125/2014winter/Assignment2/Assignment2.html) at Dalhousie
 University in Halifax, NS, Canada.
