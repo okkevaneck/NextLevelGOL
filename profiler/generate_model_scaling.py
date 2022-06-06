@@ -149,7 +149,11 @@ def gen_scaling_plot():
                     right=False, labelright=False, bottom=False, labelbottom=False)
 
     ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
-    ax.set_xbound(upper=5.7)
+
+    if int(results_folder[9:10]) >= 6:
+        ax.set_xbound(upper=4.7)
+    else:
+        ax.set_xbound(upper=5.7)
     plt.tight_layout()
 
     # Annotate bars from scaling.
@@ -162,8 +166,12 @@ def gen_scaling_plot():
     values = np.append(values, df_mean[["gif"]].values.flatten())
     values = np.append(values, df_mean[["step"]].values.flatten())
 
-    for p, val in zip(patches, values):
+    for p, val, i in zip(patches, values, range(len(values))):
         width, height = p.get_width(), p.get_height()
+
+        if int(results_folder[9:10]) >= 6 and i >= len(threads * 2):
+            height = height/20 - 0.7
+
         x, y = p.get_xy()
         ax.text(x+width/2,
                 y+height/2,

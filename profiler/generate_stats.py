@@ -70,22 +70,13 @@ def gen_stats():
                                  aggfunc="mean")
 
     # Order DataFrame to plot in order.
-    if "actual" in df_mean.columns:
-        cols = ["throughput", "actual", "total", "final", "gif", "swap", "step",
-                "wrap", "init"]
-        df_mean = df_mean[cols]
-    else:
-        cols = ["throughput", "total", "final", "gif", "swap", "step", "wrap",
-                "init"]
-        df_mean = df_mean[cols]
+    cols = ["throughput", "actual", "total", "final", "gif", "swap", "step",
+            "wrap", "init"]
+    df_mean = df_mean[cols]
 
     # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()
-
-    if "actual" in df_mean.columns:
-        df_mean_norm.iloc[:, 3:] = df_mean_norm.iloc[:, 3:].div(df_mean_norm.iloc[:, 3:].sum(axis=1), axis=0)
-    else:
-        df_mean_norm.iloc[:, 2:] = df_mean_norm.iloc[:, 2:].div(df_mean_norm.iloc[:, 2:].sum(axis=1), axis=0)
+    df_mean_norm.iloc[:, 3:] = df_mean_norm.iloc[:, 3:].div(df_mean_norm.iloc[:, 3:].sum(axis=1), axis=0)
 
     # Write means file.
     with open(f"results/stats/{results_folder}_means.csv", "w") as fp:
