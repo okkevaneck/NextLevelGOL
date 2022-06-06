@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "  -----------------------------------\n");
     fprintf(stderr, "  total: %7.3f seconds (100.00%%)\n\n", total);
 
-    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.width * opts.height / total);
+    fprintf(stderr, "Throughput: %.0f pixels/second\n", opts.steps * opts.width * opts.height / total);
 #endif
 
     return 0;

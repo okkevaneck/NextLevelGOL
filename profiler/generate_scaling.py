@@ -4,66 +4,129 @@ Generate figures for scaling plots.
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import sys
 import os
 import glob
 
 
 def load_results():
-    values = {
-        "inits": [],
-        "wraps": [],
-        "steps": [],
-        "swaps": [],
-        "gifs": [],
-        "finals": [],
-        "throughput": [],
-    }
+    rows = []
 
     # Load results in variables.
     for t in threads:
         fs = glob.glob(f"results/{results_folder}/{t}_*")
-        with open(fs[0], "r") as fp:
-            lines = fp.readlines()
+        v = results_folder[9:12]
 
-            values["inits"].append(float(lines[1][11:16]))
-            values["wraps"].append(float(lines[2][11:16]))
-            values["steps"].append(float(lines[3][11:16]))
-            values["swaps"].append(float(lines[4][11:16]))
-            values["gifs"].append(float(lines[5][11:16]))
-            values["finals"].append(float(lines[6][11:16]))
-            values["throughput"].append(float(lines[10][12:18]))
+        for run_fp in fs:
+            with open(run_fp, "r") as fp:
+                lines = fp.readlines()
+
+                # Error on empty.
+                if len(lines) == 0:
+                    print(f"Detected empty results file: {run_fp}..")
+                    exit(1)
+
+                rows.append({"nthreads": int(t), "type": "init", "value": float(lines[1][12:17])})
+                rows.append({"nthreads": int(t), "type": "wrap", "value": float(lines[2][12:17])})
+                rows.append({"nthreads": int(t), "type": "step", "value": float(lines[3][12:17])})
+                rows.append({"nthreads": int(t), "type": "swap", "value": float(lines[4][12:17])})
+                rows.append({"nthreads": int(t), "type": "gif", "value": float(lines[5][12:17])})
+                rows.append({"nthreads": int(t), "type": "final", "value": float(lines[6][12:17])})
+
+                # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
+                # Including version 7.0, because it is special (and does have latency hiding without pthreads).
+                if int(v[0]) >= 6:
+                    rows.append({"nthreads": int(t), "type": "total", "value": float(lines[9][11:16])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[11][12:21])})
+                    rows.append({"nthreads": int(t), "type": "overlap",
+                                 "value": float(lines[8][12:18]) - float(lines[9][12:18])})
+                else:
+                    rows.append({"nthreads": int(t), "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"nthreads": int(t), "type": "throughput", "value": float(lines[10][12:21])})
+                    rows.append({"nthreads": int(t), "type": "overlap", "value": 0.0})
+
+    values = pd.DataFrame(rows)
 
     return values
 
 
 def gen_scaling_plot():
-    # Arrays with measured values.
-    data = load_results()
+    # Fetch DatFrame with measured values.
+    df = load_results()
 
-    # Create DataFrame with normalized performance numbers.
-    df = pd.DataFrame({"nthreads": threads,
-                       "wrap": data["wraps"],
-                       "step": data["steps"],
-                       "swap": data["swaps"],
-                       "gif":  data["gifs"]})
+    # Create DataFrame with mean values.
+    df_mean = df.pivot_table(index="nthreads",
+                             columns="type",
+                             values="value",
+                             aggfunc="mean")
 
-    # Setup stacked barchart.
+    cols = ["throughput", "total", "final",  "swap", "gif", "overlap", "step", "wrap", "init"]
+    df_mean = df_mean[cols]
+
+    # Subtract overlap of step for all rows that do not belong to v7.0.
+    # Subtract overlap of gif for the rows of version 7.0.
+    idxs = list(df_mean.index)
+
+    if "v7.0" in idxs:
+        idxs.remove("v7.0")
+        df_mean.loc[["v7.0"]]["step"] -= df_mean.loc[["v7.0"]]["overlap"]
+
+    df_mean.loc[idxs]["step"] -= df_mean.loc[idxs]["overlap"]
+
+    # Create DataFrame for the error bars (std).
+    df_std = df.pivot_table(index="nthreads",
+                            columns="type",
+                            values="value",
+                            aggfunc="std")
+
+    # Plot means.
     sns.set(style="white")
-    df.set_index("nthreads").plot(kind="bar", stacked=True)
+    ax = df_mean[cols[2:]].plot(kind="bar", stacked=True, figsize=(9, 6), rot=0,
+                                # yerr=df_std[["step", "gif", "final"]]
+                                linewidth=0)
+
+    # Color hatches properly.
+    mpl.rcParams["hatch.linewidth"] = 7.5
+    edgeColor = None
+
+    for i in range(len(threads)):
+        ovlpIdx = len(threads) * cols[2:].index("overlap") + i
+        ax.patches[ovlpIdx].set_hatch("/")
+
+        if edgeColor is None:
+            edgeColor = ax.patches[ovlpIdx - 1].get_facecolor()
+
+        ax.patches[ovlpIdx].set_edgecolor(edgeColor)
+
+    # Recolor all bars above hatch.
+    for i in range(len(threads)):
+        ovlpIdx = len(threads) * cols[2:].index("overlap") + i
+        stepIdx = len(threads) * cols[2:].index("step") + i
+        wrapIdx = len(threads) * cols[2:].index("wrap") + i
+        initIdx = len(threads) * cols[2:].index("init") + i
+
+        ax.patches[initIdx].set_facecolor(ax.patches[wrapIdx].get_facecolor())
+        ax.patches[wrapIdx].set_facecolor(ax.patches[stepIdx].get_facecolor())
+        ax.patches[stepIdx].set_facecolor(ax.patches[ovlpIdx].get_facecolor())
 
     # Add info to plot.
-    plt.title("Time spend per number of threads", fontsize=16)
+    plt.title(f"Segregated execution time per number of threads for {results_folder[8:12]}", fontsize=16)
     plt.xlabel("Number of threads", labelpad=0)
-    plt.ylabel("Time spend (s)")
+    plt.ylabel("Execution time (s)")
     plt.xticks(rotation=0)
     ax = plt.gca()
     ax.tick_params(axis="both", which="major", pad=0)
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    handles, labels = ax.get_legend_handles_labels()
+
+    # Remove overlap from legend.
+    handles.pop(labels.index("overlap"))
+    labels.pop(labels.index("overlap"))
+    ax.legend(handles[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1, 0.5))
     plt.tight_layout()
 
     # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_{'-'.join(threads)}")
+    plt.savefig(f"figures/scaling/{results_folder}_{'-'.join(threads)}.png")
     plt.show()
 
 
@@ -85,5 +148,5 @@ if __name__ == "__main__":
             print(f"Results for '{t}' threads do not exist..")
             exit(1)
 
-    # # Generate normalized bar plot with the given versions.
+    # Generate normalized bar plot with the given versions.
     gen_scaling_plot()

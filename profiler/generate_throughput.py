@@ -10,54 +10,62 @@ import glob
 
 
 def load_results():
-    values = {
-        "inits": [],
-        "wraps": [],
-        "steps": [],
-        "swaps": [],
-        "gifs": [],
-        "finals": [],
-        "throughput": [],
-    }
+    rows = []
 
     # Load results in variables.
     for v in versions:
-        fs = glob.glob(f"results/{results_folder}/{v}_*")
-        with open(fs[0], "r") as fp:
-            lines = fp.readlines()
+        fs = glob.glob(f"results/{results_folder}/{v}_*.out")
 
-            values["inits"].append(float(lines[1][11:16]))
-            values["wraps"].append(float(lines[2][11:16]))
-            values["steps"].append(float(lines[3][11:16]))
-            values["swaps"].append(float(lines[4][11:16]))
-            values["gifs"].append(float(lines[5][11:16]))
-            values["finals"].append(float(lines[6][11:16]))
-            values["throughput"].append(float(lines[10][12:18]))
+        for run_fp in fs:
+            with open(run_fp, "r") as fp:
+                lines = fp.readlines()
+                rows.append({"version": v, "type": "init", "value": float(lines[1][12:17])})
+                rows.append({"version": v, "type": "wrap", "value": float(lines[2][12:17])})
+                rows.append({"version": v, "type": "step", "value": float(lines[3][12:17])})
+                rows.append({"version": v, "type": "swap", "value": float(lines[4][12:17])})
+                rows.append({"version": v, "type": "gif", "value": float(lines[5][12:17])})
+                rows.append({"version": v, "type": "final", "value": float(lines[6][12:17])})
+
+                # For pthreads code, we take the actual time as total, which makes the throughput 1 row lower.
+                # Including version 7.0, because it is special (and does have latency hiding without pthreads).
+                if int(v[1:2]) >= 6:
+                    rows.append({"version": v, "type": "total", "value": float(lines[9][11:16])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[11][12:21])})
+                else:
+                    rows.append({"version": v, "type": "total", "value": float(lines[8][11:16])})
+                    rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:21])})
+
+    values = pd.DataFrame(rows)
 
     return values
 
 
 def gen_throughput():
-    # Arrays with measured values.
-    norm_values = load_results()
+    # Fetch DatFrame with measured values.
+    df = load_results()
+
+    # Create DataFrame with mean values and normalize.
+    df_mean = df.pivot_table(index="version",
+                             columns="type",
+                             values="value",
+                             aggfunc="mean")
 
     # Create DataFrame with normalized performance numbers.
     df = pd.DataFrame({"Version": versions,
-                       "throughput": norm_values["throughput"]})
+                       "throughput": df_mean["throughput"]})
 
     sns.set(style="white")
     ax = sns.barplot(x="Version", y="throughput", data=df, color="#4878D0")
 
     # Compose values per 1000.
-    bar_values = []
     for rec in ax.containers[0]:
-        txt = str(round(rec.get_height(), -3))[:-5] + "K"
+        txt = str(round(rec.get_height(), -6))[:-8] + "M"
         ax.text(x=rec.get_x() + rec.get_width() / 2, y=rec.get_height()+.5,
                 s=txt, ha="center")
 
     # Add info to plot.
     plt.title("Throughput per version", fontsize=16)
-    plt.xlabel("Versions", labelpad=0)
+    plt.xlabel("Version", labelpad=0)
     plt.ylabel("Throughput (pixels/second)")
     plt.tight_layout()
     plt.xticks(rotation=45)
@@ -68,11 +76,11 @@ def gen_throughput():
     ylbls = ax.get_yticklabels()
     new_labels = []
     for ylbl in ylbls:
-        new_labels.append(str(round(float(ylbl.get_text()), -3))[:-5] + "K")
+        new_labels.append(str(round(float(ylbl.get_text()), -6))[:-8] + "M")
     ax.set_yticklabels(new_labels)
 
     # Save and show plot.
-    plt.savefig(f"figures/{results_folder}_throughput_{'-'.join(versions)}")
+    plt.savefig(f"figures/throughput/{results_folder}_throughput_{'-'.join(versions)}.png")
     plt.show()
 
 

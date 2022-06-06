@@ -10,6 +10,32 @@ run_profiler() {
     make gol > /dev/null 2> /dev/null
     cd ../..
 
+    # Include number of threads to arguments if main version is 6 or higher, but not 7.0.
+    (( mainVersion = ${1:6:1} ))
+
+    if [ "${1:6:3}" != "7.0" ] && [ "$mainVersion" -ge 6 ]; then
+        threadArgs="-t 16"
+    else
+        threadArgs=""
+    fi
+
+    # Perform one dry run.
+    echo -en "\tExecuting dry run.."
+
+    if [ "$3" = "das" ]; then
+        rm -f profiler.gif
+        prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
+    else
+        rm -f profiler.gif
+        "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs &> /dev/null
+        rm -f profiler.gif
+    fi
+
+    echo -e "\tDone."
+
+    sleep 1
+
     # Perform 5 tests for each version.
     for t in {1..5}; do
         echo -en "\tExecuting run $t.."
@@ -17,14 +43,18 @@ run_profiler() {
         # Remove old result files, if there are any. Then run the code and store
         # output in results folder.
         if [ "$3" = "das" ]; then
-            rm -f "/var/scratch/$USER/profiler.gif"
-            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o "/var/scratch/$USER/profiler.gif" 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f rm -f profiler.gif
+            prun -reserve "$4" -np 1 "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f profiler.gif
         else
             rm -f profiler.gif
-            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            "./$1gol" 1000 1000 1000 -s 42 -o profiler.gif $threadArgs 2> "$2/${1:5:-1}_t$t.out" > /dev/null
+            rm -f profiler.gif
         fi
 
         echo -e "\tDone."
+
+        sleep 1
     done
 }
 
@@ -50,7 +80,7 @@ main() {
 
     # When on the DAS, reserve node to perform all experiments on.
     if [ "$2" = "das" ]; then
-        reservation=$(preserve -# 1 -t 10:00)
+        reservation=$(preserve -# 1 -t 15:00)
         resid=${reservation:19:7}
 
         # Sleep 3 seconds for the cluster to activate our reservation.
