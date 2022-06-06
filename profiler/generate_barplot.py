@@ -39,6 +39,8 @@ def load_results():
                     rows.append({"version": v, "type": "throughput", "value": float(lines[10][12:21])})
                     rows.append({"version": v, "type": "overlap", "value": 0.0})
 
+                # print(rows[-3:])
+
     values = pd.DataFrame(rows)
 
     return values
@@ -58,15 +60,16 @@ def gen_barplot():
     cols = ["throughput", "total", "final",  "swap", "gif", "overlap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    # Subtract overlap of step for all rows that do not belong to v7.0.
-    # Subtract overlap of gif for the rows of version 7.0.
+    # Subtract overlap from step for all rows that do not belong to v7.0.
+    # Subtract overlap from gif for the rows of version 7.0.
     idxs = list(df_mean.index)
 
     if "v7.0" in idxs:
         idxs.remove("v7.0")
-        df_mean.loc[["v7.0"]]["step"] -= df_mean.loc[["v7.0"]]["overlap"]
+        df_mean.loc["v7.0"]["gif"] = df_mean.loc["v7.0"]["gif"] - df_mean.loc["v7.0"]["overlap"]
 
-    df_mean.loc[idxs]["step"] -= df_mean.loc[idxs]["overlap"]
+    for idx in idxs:
+        df_mean.loc[idx]["step"] -= df_mean.loc[idx]["overlap"]
 
     # Normalize the mean values to be between 0 and 1.
     df_mean_norm = df_mean.copy()

@@ -64,15 +64,16 @@ def gen_scaling_plot():
     cols = ["throughput", "total", "final",  "swap", "gif", "overlap", "step", "wrap", "init"]
     df_mean = df_mean[cols]
 
-    # Subtract overlap of step for all rows that do not belong to v7.0.
-    # Subtract overlap of gif for the rows of version 7.0.
+    # Subtract overlap from step for all rows that do not belong to v7.0.
+    # Subtract overlap from gif for the rows of version 7.0.
     idxs = list(df_mean.index)
 
     if "v7.0" in idxs:
         idxs.remove("v7.0")
-        df_mean.loc[["v7.0"]]["step"] -= df_mean.loc[["v7.0"]]["overlap"]
+        df_mean.loc["v7.0"]["gif"] = df_mean.loc["v7.0"]["gif"] - df_mean.loc["v7.0"]["overlap"]
 
-    df_mean.loc[idxs]["step"] -= df_mean.loc[idxs]["overlap"]
+    for idx in idxs:
+        df_mean.loc[idx]["step"] -= df_mean.loc[idx]["overlap"]
 
     # Create DataFrame for the error bars (std).
     df_std = df.pivot_table(index="nthreads",
